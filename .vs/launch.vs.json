@@ -1,0 +1,40 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "Diploma.exe (Diploma\\Diploma.exe)",
+      "name": "Diploma.exe (Diploma\\Diploma.exe) withopts",
+      "args": [
+        "--window-width=1280",
+        "--window-height=720",
+        "--angle=90.0",
+        "--target-bond=0.0",
+        "--bond-step=1.0",
+        "--relaxation-param-min=0.00001",
+        "--accuracy=0.0001",
+        "--splits-num=100",
+        "--iterations-max-num=10000",
+        "--results-num=1",
+        "--field-surf-splits-num=5",
+        "--field-int-splits-num=5",
+        "--field-inf-splits-num=5",
+        "--field-iter-max-num=10000",
+        "--field-accuracy=0.0001",
+        "--field-relax-param-min=0.00001",
+        "--field-chi=2.0",
+        "--field-w=2.0",
+        "--nondim",
+        "--equal-axis"
+      ]
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "Diploma.exe (Diploma\\Diploma.exe)",
+      "name": "Diploma.exe (Diploma\\Diploma.exe)"
+    }
+  ]
+}
