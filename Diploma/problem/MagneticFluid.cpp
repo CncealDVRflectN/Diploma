@@ -8,9 +8,8 @@ MagneticFluid::MagneticFluid(const FluidParams& params, const MagneticParams& ma
 	pointsNum = params.splitsNum + 1;
 	step = 1.0 / params.splitsNum;
 	iterationsCounter = 0U;
-	curBond = 0.0;
-	nextBond = 0.0;
 	relaxationParam = 1.0;
+	w = 0.0;
 
 	rightSweep = new RightSweep(pointsNum);
 
@@ -59,7 +58,7 @@ MagneticField* MagneticFluid::getMagneticField()
 }
 
 
-MagneticFieldResultCode MagneticFluid::getLastMagneticFieldResultCode()
+ProblemResultCode MagneticFluid::getLastMagneticFieldResultCode()
 {
 	return lastFieldResultCode;
 }
@@ -68,12 +67,6 @@ MagneticFieldResultCode MagneticFluid::getLastMagneticFieldResultCode()
 double MagneticFluid::getCurrentRelaxParam()
 {
 	return relaxationParam;
-}
-
-
-double MagneticFluid::getCurrentBond()
-{
-	return curBond;
 }
 
 
@@ -89,29 +82,34 @@ unsigned int MagneticFluid::getIterationsCounter()
 }
 
 
-FluidResultCode MagneticFluid::calcNextValidResult()
+ProblemResultCode MagneticFluid::calcResult()
 {
-	FluidResultCode resultCode = FLUID_INVALID_RESULT;
+	ProblemResultCode resultCode = FLUID_INVALID_RESULT;
+	ProblemResultCode fieldResultCode = FIELD_INVALID_RESULT;
 
-	if (curBond >= fluidParams.bond && iterationsCounter != 0)
-	{
-		return FLUID_TARGET_BOND_REACHED;
-	}
+	calcInitialApproximation();
+	relaxationParam = 1.0;
 
-	while (relaxationParam >= fluidParams.relaxParamMin && resultCode != FLUID_SUCCESS && resultCode != FLUID_TARGET_BOND_REACHED)
+	while (relaxationParam >= fluidParams.relaxParamMin && resultCode != FLUID_SUCCESS)
 	{
 		resultCode = calcRelaxation();
 
-		if (resultCode != FLUID_SUCCESS && resultCode != FLUID_TARGET_BOND_REACHED)
+		if (resultCode == FLUID_SUCCESS)
+		{
+			magneticField->generateGrid(nextApproxR, nextApproxZ, pointsNum);
+			fieldResultCode = magneticField->calcResult();
+
+			if (fieldResultCode != FIELD_SUCCESS)
+			{
+				resultCode = fieldResultCode;
+			}
+		}
+
+		if (resultCode != FLUID_SUCCESS || fieldResultCode != FIELD_SUCCESS)
 		{
 			calcInitialApproximation();
 			relaxationParam *= 0.5;
 		}
-	}
-
-	if (relaxationParam < fluidParams.relaxParamMin)
-	{
-		return FLUID_TARGET_BOND_NOT_REACHABLE;
 	}
 
 	return resultCode;
@@ -128,26 +126,25 @@ double MagneticFluid::calcVolumeNondimMul()
 
 void MagneticFluid::calcInitialApproximation()
 {
-	curBond = 0.0;
 	iterationsCounter = 0U;
 
 	for (int i = 0; i < pointsNum; i++)
 	{
-		lastValidResult[i] = { sin(fluidParams.alpha * i * step) / fluidParams.alpha, 
-							   (cos(fluidParams.alpha * i * step) - cos(fluidParams.alpha)) / fluidParams.alpha };
+		lastValidResult[i] = { M_2_PI * sin(M_PI_2 * i * step), M_2_PI * cos(M_PI_2 * i * step) };
 	}
 
 	magneticField->generateGrid(lastValidResult, pointsNum);
+	magneticField->calcInitialApproximation();
 	magneticField->calcResult();
 }
 
 
-void MagneticFluid::calcNextApproximationR(double bond, const double* valZ, const double* prevValZ)
+void MagneticFluid::calcNextApproximationR(const double* valZ, const double* prevValZ)
 {
 	double integralCbrt = cbrt(calcIntegralTrapeze(curApproxR, prevValZ));
 	double integralCbrtSq = integralCbrt * integralCbrt;
-	double valQ = calcQ(curApproxR, prevValZ, bond, integralCbrt);
-	double tmp = sin(fluidParams.alpha);
+	double valQ = calcQ(curApproxR, prevValZ, integralCbrt);
+	double tmp = 0.0;
 
 	rightSweep->mainDiagonal[0] = 1.0;
 	rightSweep->upperDiagonal[0] = 0.0;
@@ -155,9 +152,8 @@ void MagneticFluid::calcNextApproximationR(double bond, const double* valZ, cons
 	rightSweep->mainDiagonal[pointsNum - 1] = 1.0;
 
 	rightSweep->vect[0] = 0.0;
-	rightSweep->vect[pointsNum - 1] = step * (cos(fluidParams.alpha) -
-										0.5 * step * tmp * (tmp / curApproxR[pointsNum - 1] + valQ - 
-											calcMagneticF(curApproxR, prevValZ, pointsNum - 1, integralCbrt)));
+	rightSweep->vect[pointsNum - 1] = 0.5 * step * step * 
+									  (valQ - calcMagneticF(curApproxR, prevValZ, pointsNum - 1, integralCbrt) + 1.0 / curApproxR[pointsNum - 1]);
 
 	int splitsNum = pointsNum - 1;
 	for (int i = 1; i < splitsNum; i++)
@@ -167,22 +163,21 @@ void MagneticFluid::calcNextApproximationR(double bond, const double* valZ, cons
 		rightSweep->upperDiagonal[i] = 1.0;
 
 		tmp = 0.5 * (valZ[i + 1] - valZ[i - 1]);
-		rightSweep->vect[i] = -step * tmp * (bond * prevValZ[i] / integralCbrtSq - tmp / (step * curApproxR[i]) - 
-								calcMagneticF(curApproxR, prevValZ, i, integralCbrt) + valQ);
+		rightSweep->vect[i] = -step * tmp * (valQ - tmp / (step * curApproxR[i]) - calcMagneticF(curApproxR, prevValZ, i, integralCbrt));
 	}
 
 	rightSweep->calcRightSweep(nextApproxR);
 }
 
 
-void MagneticFluid::calcNextApproximationZ(double bond, const double* valR, const double* prevValR)
+void MagneticFluid::calcNextApproximationZ(const double* valR, const double* prevValR)
 {
 	double integralCbrt = cbrt(calcIntegralTrapeze(prevValR, curApproxZ));
 	double integralCbrtSq = integralCbrt * integralCbrt;
-	double valQ = calcQ(prevValR, curApproxZ, bond, integralCbrt);
+	double valQ = calcQ(prevValR, curApproxZ, integralCbrt);
 	double tmp = 0.25 * step * step;
 
-	rightSweep->mainDiagonal[0] = -(1.0 + tmp * bond / integralCbrtSq);
+	rightSweep->mainDiagonal[0] = -1.0;
 	rightSweep->upperDiagonal[0] = 1.0;
 	rightSweep->lowerDiagonal[pointsNum - 2] = 0.0;
 	rightSweep->mainDiagonal[pointsNum - 1] = 1.0;
@@ -197,20 +192,18 @@ void MagneticFluid::calcNextApproximationZ(double bond, const double* valR, cons
 		rightSweep->mainDiagonal[i] = -(2.0 + (valR[i + 1] + valR[i - 1]) / valR[i]);
 		rightSweep->upperDiagonal[i] = 1.0 + valR[i + 1] / valR[i];
 
-		rightSweep->vect[i] = step * (valR[i + 1] - valR[i - 1]) * (bond * curApproxZ[i] / integralCbrtSq - 
-								calcMagneticF(prevValR, curApproxZ, i, integralCbrt) + valQ);
+		rightSweep->vect[i] = step * (valR[i + 1] - valR[i - 1]) * (valQ - calcMagneticF(prevValR, curApproxZ, i, integralCbrt));
 	}
 
 	rightSweep->calcRightSweep(nextApproxZ);
 }
 
 
-FluidResultCode MagneticFluid::calcRelaxation()
+ProblemResultCode MagneticFluid::calcRelaxation()
 {
-	MagneticFieldResultCode fieldResultCode = FIELD_INVALID_RESULT;
 	double* tmpPtr;
 	double curEpsilon = fluidParams.epsilon * relaxationParam;
-	unsigned int counter = 0U;
+	int counter = 0;
 
 	for (int i = 0; i < pointsNum; i++)
 	{
@@ -228,18 +221,15 @@ FluidResultCode MagneticFluid::calcRelaxation()
 		nextApproxZ = curApproxZ;
 		curApproxZ = tmpPtr;
 
-		calcNextApproximationR(nextBond, curApproxZ, curApproxZ);
+		calcNextApproximationR(curApproxZ, curApproxZ);
 		relaxation(nextApproxR, curApproxR, pointsNum, relaxationParam);
 
-		calcNextApproximationZ(nextBond, nextApproxR, curApproxR);
+		calcNextApproximationZ(nextApproxR, curApproxR);
 		relaxation(nextApproxZ, curApproxZ, pointsNum, relaxationParam);
-
-		magneticField->generateGrid(nextApproxR, nextApproxZ, pointsNum);
-		fieldResultCode = magneticField->calcResult();
 
 		counter++;
 	} while (std::max(norm(nextApproxR, curApproxR, pointsNum), norm(nextApproxZ, nextApproxZ, pointsNum)) > curEpsilon && 
-				counter < fluidParams.iterationsNumMax && fieldResultCode == FIELD_SUCCESS);
+				counter < fluidParams.iterationsNumMax);
 
 	iterationsCounter += counter;
 
@@ -247,30 +237,17 @@ FluidResultCode MagneticFluid::calcRelaxation()
 	{
 		return FLUID_ITERATIONS_LIMIT_EXCEEDED;
 	}
-	else if (!isApproximationValid(nextApproxR) || !isApproximationValid(nextApproxZ) || fieldResultCode != FIELD_SUCCESS)
+	else if (!isApproximationValid(nextApproxR) || !isApproximationValid(nextApproxZ))
 	{
-		if (fieldResultCode != FIELD_SUCCESS)
-		{
-			magneticField->calcInitialApproximation();
-		}
-
 		return FLUID_INVALID_RESULT;
 	}
 	else
 	{
-		curBond = nextBond;
-		nextBond = std::min(curBond + fluidParams.bondStep, fluidParams.bond);
-
 		for (int i = 0; i < pointsNum; i++)
 		{
 			lastValidResult[i].r = nextApproxR[i];
 			lastValidResult[i].z = nextApproxZ[i];
 		}
-	}
-
-	if (curBond == fluidParams.bond)
-	{
-		return FLUID_TARGET_BOND_REACHED;
 	}
 
 	return FLUID_SUCCESS;
@@ -319,11 +296,11 @@ double MagneticFluid::calcMagneticIntegralTrapeze(const double* approxR, const d
 }
 
 
-double MagneticFluid::calcQ(const double* approxR, const double* approxZ, double bond, double integralCbrt)
+double MagneticFluid::calcQ(const double* approxR, const double* approxZ, double integralCbrt)
 {
-	double value = approxR[pointsNum - 1];
+	double value = 1.0 / approxR[pointsNum - 1];
 	double magneticIntegral = calcMagneticIntegralTrapeze(approxR, approxZ, integralCbrt);
-	return -(2.0 * (sin(fluidParams.alpha) - magneticIntegral) + bond * integralCbrt / (M_PI * value)) / value;
+	return -2.0 * value * (1.0 - magneticIntegral * value);
 }
 
 
@@ -335,13 +312,11 @@ double MagneticFluid::calcMagneticF(const double* approxR, const double* approxZ
 
 	if (index == 0)
 	{
-		tmp = (-(approxZ[index + 1] - approxZ[index]) * deriv.r +
-				(approxR[index + 1] - approxR[index]) * deriv.z) / step;
+		tmp = deriv.z;
 	}
 	else if (index == pointsNum - 1)
 	{
-		tmp = (-(approxZ[index] - approxZ[index - 1]) * deriv.r +
-				(approxR[index] - approxR[index - 1]) * deriv.z) / step;
+		tmp = deriv.r;
 	}
 	else
 	{
@@ -349,7 +324,7 @@ double MagneticFluid::calcMagneticF(const double* approxR, const double* approxZ
 					(approxR[index + 1] - approxR[index - 1]) * deriv.z) / step;
 	}
 
-	return 0.5 * fluidParams.w * (tmp * tmp + (deriv.r * deriv.r + deriv.z * deriv.z) / fluidParams.chi) / integralCbrt;
+	return 0.5 * w * (tmp * tmp + (deriv.r * deriv.r + deriv.z * deriv.z) / fluidParams.chi) / integralCbrt;
 }
 
 
@@ -357,7 +332,7 @@ bool MagneticFluid::isApproximationValid(const double* approx)
 {
 	for (int i = 0; i < pointsNum; i++)
 	{
-		if (!std::isfinite(approx[i]))
+		if (!std::isfinite(approx[i]) || approx[i] < -0.00001)
 		{
 			return false;
 		}

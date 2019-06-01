@@ -4,14 +4,6 @@
 #include "../util/util.h"
 
 
-enum MagneticFieldResultCode
-{
-	FIELD_SUCCESS,
-	FIELD_ITERATIONS_LIMIT_EXCEEDED,
-	FIELD_INVALID_RESULT
-};
-
-
 typedef struct magnetic_params_t
 {
 	int surfaceSplitsNum;
@@ -39,9 +31,11 @@ public:
 
 	int getGridColumnsNum();
 
+	int getSurfaceColumnIndex();
+
 	unsigned int getIterationsCounter();
 
-	MagneticFieldResultCode calcResult();
+	ProblemResultCode calcResult();
 
 	Vector2 calcInnerDerivative(double param);
 
@@ -82,7 +76,7 @@ private:
 
 	void calcNextApproximation();
 
-	MagneticFieldResultCode calcRelaxation();
+	ProblemResultCode calcRelaxation();
 
 	bool isApproximationValid(double** approx);
 

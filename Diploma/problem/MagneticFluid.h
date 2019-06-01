@@ -6,25 +6,11 @@
 #include "MagneticField.h"
 
 
-enum FluidResultCode
-{
-	FLUID_SUCCESS,
-	FLUID_ITERATIONS_LIMIT_EXCEEDED,
-	FLUID_INVALID_RESULT,
-	FLUID_TARGET_BOND_REACHED,
-	FLUID_TARGET_BOND_NOT_REACHABLE
-};
-
-
 typedef struct fluid_params_t
 {
-	double alpha;
-	double bond;
-	double bondStep;
 	double relaxParamMin;
 	double epsilon;
 	double chi;
-	double w;
 	int splitsNum;
 	int iterationsNumMax;
 } FluidParams;
@@ -33,6 +19,9 @@ typedef struct fluid_params_t
 class MagneticFluid
 {
 public:
+	double w;
+
+
 	MagneticFluid(const FluidParams& params, const MagneticParams& magneticParams);
 
 	~MagneticFluid();
@@ -43,17 +32,15 @@ public:
 
 	MagneticField* getMagneticField();
 
-	MagneticFieldResultCode getLastMagneticFieldResultCode();
+	ProblemResultCode getLastMagneticFieldResultCode();
 
 	double getCurrentRelaxParam();
-
-	double getCurrentBond();
 
 	int getPointsNum();
 
 	unsigned int getIterationsCounter();
 
-	FluidResultCode calcNextValidResult();
+	ProblemResultCode calcResult();
 
 	double calcVolumeNondimMul();
 
@@ -64,7 +51,7 @@ private:
 
 	MagneticField* magneticField;
 
-	MagneticFieldResultCode lastFieldResultCode;
+	ProblemResultCode lastFieldResultCode;
 
 	Vector2* lastValidResult;
 	double* nextApproxR;
@@ -73,8 +60,6 @@ private:
 	double* curApproxZ;
 
 	double relaxationParam;
-	double curBond;
-	double nextBond;
 	double step;
 
 	int pointsNum;
@@ -84,11 +69,11 @@ private:
 
 	void calcInitialApproximation();
 
-	void calcNextApproximationR(double bond, const double* valZ, const double* prevValZ);
+	void calcNextApproximationR(const double* valZ, const double* prevValZ);
 
-	void calcNextApproximationZ(double bond, const double* valR, const double* prevValR);
+	void calcNextApproximationZ(const double* valR, const double* prevValR);
 
-	FluidResultCode calcRelaxation();
+	ProblemResultCode calcRelaxation();
 
 	double calcIntegralTrapeze(const double* approxR, const double* approxZ);
 
@@ -96,7 +81,7 @@ private:
 
 	double calcMagneticIntegralTrapeze(const double* approxR, const double* approxZ, double integralCbrt);
 
-	double calcQ(const double* approxR, const double* approxZ, double bond, double integralCbrt);
+	double calcQ(const double* approxR, const double* approxZ, double integralCbrt);
 
 	double calcMagneticF(const double* approxR, const double* approxZ, int index, double integralCbrt);
 

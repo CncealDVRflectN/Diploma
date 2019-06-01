@@ -42,7 +42,7 @@ void PlotLines::plot()
 		return;
 	}
 
-	fprintf(pipe, "set term wxt size %d, %d\n", params.windowWidth, params.windowHeight);
+	fprintf(pipe, "set term wxt size %d, %d enhanced\n", params.windowWidth, params.windowHeight);
 	fprintf(pipe, "set title \"%s\"\n", params.title.c_str());
 	fprintf(pipe, "set xlabel \"%s\"\n", params.labelX.c_str());
 	fprintf(pipe, "set ylabel \"%s\"\n", params.labelY.c_str());

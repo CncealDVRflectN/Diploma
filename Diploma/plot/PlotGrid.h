@@ -12,6 +12,7 @@ typedef struct plot_grid_params_t
 	std::string labelY;
 	int windowWidth;
 	int windowHeight;
+	double volumeNonDimMul;
 	bool isEqualAxis;
 } PlotGridParams;
 
@@ -23,7 +24,7 @@ public:
 
 	~PlotGrid();
 
-	void setGrid(Vector2** grid, int linesNum, int columnsNum);
+	void setGrid(Vector2** grid, int linesNum, int columnsNum, int surfaceColumnIndex);
 
 	void plot();
 
@@ -33,6 +34,7 @@ private:
 	Vector2** grid;
 	int gridLinesNum;
 	int gridColumnsNum;
+	int surfaceColumnIndex;
 
 	PlotGridParams params;
 

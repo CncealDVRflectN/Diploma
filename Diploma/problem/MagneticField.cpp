@@ -97,15 +97,21 @@ int MagneticField::getGridColumnsNum()
 }
 
 
+int MagneticField::getSurfaceColumnIndex()
+{
+	return surfaceColumnIndex;
+}
+
+
 unsigned int MagneticField::getIterationsCounter()
 {
 	return iterationsCounter;
 }
 
 
-MagneticFieldResultCode MagneticField::calcResult()
+ProblemResultCode MagneticField::calcResult()
 {
-	MagneticFieldResultCode resultCode = FIELD_INVALID_RESULT;
+	ProblemResultCode resultCode = FIELD_INVALID_RESULT;
 
 	while (relaxationParam >= params.relaxParamMin && resultCode != FIELD_SUCCESS)
 	{
@@ -113,6 +119,14 @@ MagneticFieldResultCode MagneticField::calcResult()
 
 		if (resultCode != FIELD_SUCCESS)
 		{
+			for (int i = 0; i < gridLinesNum; i++)
+			{
+				for (int j = 0; j < gridColumnsNum; j++)
+				{
+					grid[i][j] = lastValidGrid[i][j];
+				}
+			}
+
 			relaxationParam *= 0.5;
 		}
 	}
@@ -123,13 +137,13 @@ MagneticFieldResultCode MagneticField::calcResult()
 
 Vector2 MagneticField::calcInnerDerivative(double param)
 {
-	return calcParametricPoint(innerDerivatives, params.surfaceSplitsNum + 1, param);
+	return calcParametricPoint(innerDerivatives, params.surfaceSplitsNum + 1, (1.0 - param));
 }
 
 
 Vector2 MagneticField::calcOuterDerivative(double param)
 {
-	return calcParametricPoint(outerDerivatives, params.surfaceSplitsNum + 1, param);
+	return calcParametricPoint(outerDerivatives, params.surfaceSplitsNum + 1, (1.0 - param));
 }
 
 
@@ -387,11 +401,11 @@ void MagneticField::calcNextApproximation()
 }
 
 
-MagneticFieldResultCode MagneticField::calcRelaxation()
+ProblemResultCode MagneticField::calcRelaxation()
 {
 	double** tmpPtr;
 	double curEpsilon = params.accuracy * relaxationParam;
-	unsigned int counter = 0U;
+	int counter = 0;
 	int limitColumns = gridColumnsNum - 1;
 
 	for (int i = 0; i < gridLinesNum; i++)
@@ -425,11 +439,11 @@ MagneticFieldResultCode MagneticField::calcRelaxation()
 //		nextApprox[i][0] = b * grid[i][0].z;
 //		curApprox[i][0] = b * grid[i][0].z;
 
-		nextApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z - ((1.0 - b) * grid[i][gridColumnsNum - 1].z) / 
-			pow(grid[i][gridColumnsNum - 1].z * grid[i][gridColumnsNum - 1].z + grid[i][gridColumnsNum - 1].r * grid[i][gridColumnsNum - 1].r, 3.0 / 2.0);
-		curApprox[i][gridColumnsNum - 1] = nextApprox[i][gridColumnsNum - 1];
-//		nextApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z;
-//		curApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z;
+		//nextApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z - ((1.0 - b) * grid[i][gridColumnsNum - 1].z) / 
+		//	pow(grid[i][gridColumnsNum - 1].z * grid[i][gridColumnsNum - 1].z + grid[i][gridColumnsNum - 1].r * grid[i][gridColumnsNum - 1].r, 3.0 / 2.0);
+		//curApprox[i][gridColumnsNum - 1] = nextApprox[i][gridColumnsNum - 1];
+		nextApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z;
+		curApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z;
 	}
 
 /*	for (int i = 0; i <= surfaceColumnIndex; i++)
@@ -541,7 +555,7 @@ bool MagneticField::isApproximationValid(double** approx)
 	{
 		for (int j = 0; j < gridColumnsNum; j++)
 		{
-			if (!std::isfinite(approx[i][j]))
+			if (!std::isfinite(approx[i][j]) || approx[i][j] < -0.00001)
 			{
 				return false;
 			}
@@ -561,7 +575,7 @@ bool MagneticField::isIndicesValid(const Indices2& indices)
 void MagneticField::calcDerivatives()
 {
 	int surfacePointsNum = params.surfaceSplitsNum + 1;
-	int limit = surfacePointsNum - 1;
+	int limit = params.surfaceSplitsNum;
 	double doubleArea = 0.0;
 
 	Vector2 vert1;
@@ -575,9 +589,22 @@ void MagneticField::calcDerivatives()
 	Vector2 vertMagneticZ3;
 	Indices2 indicesOffset;
 
-	outerDerivatives[0].r = (lastValidValues[0][surfaceColumnIndex + 1] - lastValidValues[0][surfaceColumnIndex]) /
-							(lastValidGrid[0][surfaceColumnIndex + 1].r - lastValidGrid[0][surfaceColumnIndex].r);
-	outerDerivatives[0].z = 0.0;
+	vert1 = lastValidGrid[0][surfaceColumnIndex];
+	vertMagneticR1 = { lastValidValues[0][surfaceColumnIndex], vert1.z };
+	vertMagneticZ1 = { vert1.r, lastValidValues[0][surfaceColumnIndex] };
+	indicesOffset = TABLE_OFFSETS[1];
+	vert2 = lastValidGrid[0 + indicesOffset.i][surfaceColumnIndex + indicesOffset.j];
+	vertMagneticR2 = { lastValidValues[0 + indicesOffset.i][surfaceColumnIndex + indicesOffset.j], vert2.z };
+	vertMagneticZ2 = { vert2.r, lastValidValues[0 + indicesOffset.i][surfaceColumnIndex + indicesOffset.j] };
+	indicesOffset = TABLE_OFFSETS[2];
+	vert3 = lastValidGrid[0 + indicesOffset.i][surfaceColumnIndex + indicesOffset.j];
+	vertMagneticR3 = { lastValidValues[0 + indicesOffset.i][surfaceColumnIndex + indicesOffset.j], vert3.z };
+	vertMagneticZ3 = { vert3.r, lastValidValues[0 + indicesOffset.i][surfaceColumnIndex + indicesOffset.j] };
+
+	doubleArea = calcDoubleTriangleArea(vert1, vert2, vert3);
+
+	outerDerivatives[0].r = 0.0;
+	outerDerivatives[0].z = calcDoubleTriangleArea(vertMagneticZ1, vertMagneticZ2, vertMagneticZ3) / doubleArea;
 
 	for (int i = 0; i < limit; i++)
 	{
@@ -620,7 +647,20 @@ void MagneticField::calcDerivatives()
 		outerDerivatives[i].z = calcDoubleTriangleArea(vertMagneticZ1, vertMagneticZ2, vertMagneticZ3) / doubleArea;
 	}
 
+	vert1 = lastValidGrid[limit][surfaceColumnIndex];
+	vertMagneticR1 = { lastValidValues[limit][surfaceColumnIndex], vert1.z };
+	vertMagneticZ1 = { vert1.r, lastValidValues[limit][surfaceColumnIndex] };
+	indicesOffset = TABLE_OFFSETS[4];
+	vert2 = lastValidGrid[limit + indicesOffset.i][surfaceColumnIndex + indicesOffset.j];
+	vertMagneticR2 = { lastValidValues[limit + indicesOffset.i][surfaceColumnIndex + indicesOffset.j], vert2.z };
+	vertMagneticZ2 = { vert2.r, lastValidValues[limit + indicesOffset.i][surfaceColumnIndex + indicesOffset.j] };
+	indicesOffset = TABLE_OFFSETS[5];
+	vert3 = lastValidGrid[limit + indicesOffset.i][surfaceColumnIndex + indicesOffset.j];
+	vertMagneticR3 = { lastValidValues[limit + indicesOffset.i][surfaceColumnIndex + indicesOffset.j], vert3.z };
+	vertMagneticZ3 = { vert3.r, lastValidValues[limit + indicesOffset.i][surfaceColumnIndex + indicesOffset.j] };
+
+	doubleArea = calcDoubleTriangleArea(vert1, vert2, vert3);
+
 	innerDerivatives[limit].r = 0.0;
-	innerDerivatives[limit].z = (lastValidValues[limit][surfaceColumnIndex + 1] - lastValidValues[limit][surfaceColumnIndex]) /
-								(lastValidGrid[limit][surfaceColumnIndex + 1].z - lastValidGrid[limit][surfaceColumnIndex].z);
+	innerDerivatives[limit].z = calcDoubleTriangleArea(vertMagneticZ1, vertMagneticZ2, vertMagneticZ3) / doubleArea;
 }
