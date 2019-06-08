@@ -11,6 +11,7 @@ typedef struct fluid_params_t
 	double relaxParamMin;
 	double epsilon;
 	double chi;
+	double w;
 	int splitsNum;
 	int iterationsNumMax;
 } FluidParams;
@@ -19,28 +20,39 @@ typedef struct fluid_params_t
 class MagneticFluid
 {
 public:
-	double w;
-
-
-	MagneticFluid(const FluidParams& params, const MagneticParams& magneticParams);
+	MagneticFluid(const FluidParams& params);
 
 	~MagneticFluid();
 
-	const Vector2* getLastValidResult();
+	Vector2* getLastValidResult();
+
+	Vector2* getDerivatives();
 
 	FluidParams getFluidParams();
 
-	MagneticField* getMagneticField();
-
 	ProblemResultCode getLastMagneticFieldResultCode();
 
-	double getCurrentRelaxParam();
+	double getCurrentRelaxationParam();
+
+	double getCurrentW();
 
 	int getPointsNum();
 
 	unsigned int getIterationsCounter();
 
-	ProblemResultCode calcResult();
+	void setLastValidResult(Vector2* result);
+
+	void setW(double w);
+
+	void setChi(double chi);
+
+	void setRelaxationParam(double relaxParam);
+
+	void setDerivatives(Vector2* derivs);
+
+	void calcInitialApproximation();
+
+	ProblemResultCode calcRelaxation();
 
 	double calcVolumeNondimMul();
 
@@ -49,11 +61,10 @@ private:
 
 	RightSweep* rightSweep;
 
-	MagneticField* magneticField;
-
 	ProblemResultCode lastFieldResultCode;
 
 	Vector2* lastValidResult;
+	Vector2* derivatives;
 	double* nextApproxR;
 	double* nextApproxZ;
 	double* curApproxR;
@@ -67,13 +78,9 @@ private:
 	unsigned int iterationsCounter;
 
 
-	void calcInitialApproximation();
-
 	void calcNextApproximationR(const double* valZ, const double* prevValZ);
 
 	void calcNextApproximationZ(const double* valR, const double* prevValR);
-
-	ProblemResultCode calcRelaxation();
 
 	double calcIntegralTrapeze(const double* approxR, const double* approxZ);
 

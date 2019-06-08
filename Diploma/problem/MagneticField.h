@@ -23,9 +23,13 @@ public:
 
 	~MagneticField();
 
-	Vector2** getLastValidGrid();
+	Vector2** getGrid();
 
 	double** getLastValidResult();
+
+	Vector2* getInnerDerivatives();
+
+	Vector2* getOuterDerivatives();
 
 	int getGridLinesNum();
 
@@ -35,7 +39,17 @@ public:
 
 	unsigned int getIterationsCounter();
 
-	ProblemResultCode calcResult();
+	double getCurrentRelaxationParam();
+
+	void setLastValidResult(double** result);
+
+	void setGrid(Vector2** grid);
+
+	void setRelaxationParam(double relaxParam);
+
+	void setChi(double chi);
+
+	ProblemResultCode calcRelaxation();
 
 	Vector2 calcInnerDerivative(double param);
 
@@ -49,7 +63,6 @@ public:
 private:
 	MagneticParams params;
 
-	Vector2** lastValidGrid;
 	Vector2** grid;
 
 	double** lastValidValues;
@@ -75,8 +88,6 @@ private:
 	double calcNextValue(int i, int j);
 
 	void calcNextApproximation();
-
-	ProblemResultCode calcRelaxation();
 
 	bool isApproximationValid(double** approx);
 

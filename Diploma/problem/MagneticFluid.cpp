@@ -2,24 +2,22 @@
 #include <algorithm>
 
 
-MagneticFluid::MagneticFluid(const FluidParams& params, const MagneticParams& magneticParams)
+MagneticFluid::MagneticFluid(const FluidParams& params)
 {
 	fluidParams = params;
 	pointsNum = params.splitsNum + 1;
 	step = 1.0 / params.splitsNum;
 	iterationsCounter = 0U;
 	relaxationParam = 1.0;
-	w = 0.0;
 
 	rightSweep = new RightSweep(pointsNum);
 
 	lastValidResult = new Vector2[pointsNum];
+	derivatives = new Vector2[pointsNum];
 	nextApproxR = new double[pointsNum];
 	nextApproxZ = new double[pointsNum];
 	curApproxR = new double[pointsNum];
 	curApproxZ = new double[pointsNum];
-
-	magneticField = new MagneticField(magneticParams);
 
 	this->calcInitialApproximation();
 }
@@ -29,20 +27,25 @@ MagneticFluid::~MagneticFluid()
 {
 	delete rightSweep;
 	delete lastValidResult;
+	delete derivatives;
 	delete nextApproxR;
 	delete nextApproxZ;
 	delete curApproxR;
 	delete curApproxZ;
-
-	delete magneticField;
 }
 
 
 #pragma mark Public methods
 
-const Vector2* MagneticFluid::getLastValidResult()
+Vector2* MagneticFluid::getLastValidResult()
 {
 	return lastValidResult;
+}
+
+
+Vector2* MagneticFluid::getDerivatives()
+{
+	return derivatives;
 }
 
 
@@ -52,21 +55,21 @@ FluidParams MagneticFluid::getFluidParams()
 }
 
 
-MagneticField* MagneticFluid::getMagneticField()
-{
-	return magneticField;
-}
-
-
 ProblemResultCode MagneticFluid::getLastMagneticFieldResultCode()
 {
 	return lastFieldResultCode;
 }
 
 
-double MagneticFluid::getCurrentRelaxParam()
+double MagneticFluid::getCurrentRelaxationParam()
 {
 	return relaxationParam;
+}
+
+
+double MagneticFluid::getCurrentW()
+{
+	return fluidParams.w;
 }
 
 
@@ -82,37 +85,40 @@ unsigned int MagneticFluid::getIterationsCounter()
 }
 
 
-ProblemResultCode MagneticFluid::calcResult()
+void MagneticFluid::setLastValidResult(Vector2* result)
 {
-	ProblemResultCode resultCode = FLUID_INVALID_RESULT;
-	ProblemResultCode fieldResultCode = FIELD_INVALID_RESULT;
-
-	calcInitialApproximation();
-	relaxationParam = 1.0;
-
-	while (relaxationParam >= fluidParams.relaxParamMin && resultCode != FLUID_SUCCESS)
+	for (int i = 0; i < pointsNum; i++)
 	{
-		resultCode = calcRelaxation();
-
-		if (resultCode == FLUID_SUCCESS)
-		{
-			magneticField->generateGrid(nextApproxR, nextApproxZ, pointsNum);
-			fieldResultCode = magneticField->calcResult();
-
-			if (fieldResultCode != FIELD_SUCCESS)
-			{
-				resultCode = fieldResultCode;
-			}
-		}
-
-		if (resultCode != FLUID_SUCCESS || fieldResultCode != FIELD_SUCCESS)
-		{
-			calcInitialApproximation();
-			relaxationParam *= 0.5;
-		}
+		lastValidResult[i] = result[i];
 	}
+}
 
-	return resultCode;
+
+void MagneticFluid::setW(double w)
+{
+	fluidParams.w = w;
+}
+
+
+void MagneticFluid::setChi(double chi)
+{
+	fluidParams.chi = chi;
+}
+
+
+
+void MagneticFluid::setRelaxationParam(double relaxParam)
+{
+	relaxationParam = relaxParam;
+}
+
+
+void MagneticFluid::setDerivatives(Vector2* derivs)
+{
+	for (int i = 0; i < pointsNum; i++)
+	{
+		derivatives[i] = derivs[i];
+	}
 }
 
 
@@ -132,10 +138,6 @@ void MagneticFluid::calcInitialApproximation()
 	{
 		lastValidResult[i] = { M_2_PI * sin(M_PI_2 * i * step), M_2_PI * cos(M_PI_2 * i * step) };
 	}
-
-	magneticField->generateGrid(lastValidResult, pointsNum);
-	magneticField->calcInitialApproximation();
-	magneticField->calcResult();
 }
 
 
@@ -148,15 +150,21 @@ void MagneticFluid::calcNextApproximationR(const double* valZ, const double* pre
 
 	rightSweep->mainDiagonal[0] = 1.0;
 	rightSweep->upperDiagonal[0] = 0.0;
-	rightSweep->lowerDiagonal[pointsNum - 2] = -1.0;
+
+	rightSweep->mainDiagonal[1] = 1.0;
+	rightSweep->upperDiagonal[1] = 0.0;
+	rightSweep->lowerDiagonal[0] = 0.0;
+
 	rightSweep->mainDiagonal[pointsNum - 1] = 1.0;
+	rightSweep->lowerDiagonal[pointsNum - 2] = -1.0;
 
 	rightSweep->vect[0] = 0.0;
+	rightSweep->vect[1] = step;
 	rightSweep->vect[pointsNum - 1] = 0.5 * step * step * 
 									  (valQ - calcMagneticF(curApproxR, prevValZ, pointsNum - 1, integralCbrt) + 1.0 / curApproxR[pointsNum - 1]);
 
-	int splitsNum = pointsNum - 1;
-	for (int i = 1; i < splitsNum; i++)
+	int limit = pointsNum - 1;
+	for (int i = 2; i < limit; i++)
 	{
 		rightSweep->lowerDiagonal[i - 1] = 1.0;
 		rightSweep->mainDiagonal[i] = -2.0;
@@ -179,14 +187,21 @@ void MagneticFluid::calcNextApproximationZ(const double* valR, const double* pre
 
 	rightSweep->mainDiagonal[0] = -1.0;
 	rightSweep->upperDiagonal[0] = 1.0;
-	rightSweep->lowerDiagonal[pointsNum - 2] = 0.0;
+
+	rightSweep->mainDiagonal[pointsNum - 2] = 1.0;
+	rightSweep->upperDiagonal[pointsNum - 2] = 0.0;
+	rightSweep->lowerDiagonal[pointsNum - 3] = 0.0;
+
 	rightSweep->mainDiagonal[pointsNum - 1] = 1.0;
+	rightSweep->lowerDiagonal[pointsNum - 2] = 0.0;
 
 	rightSweep->vect[0] = tmp * (valQ - calcMagneticF(prevValR, curApproxZ, 0, integralCbrt));
+	rightSweep->vect[pointsNum - 2] = step * (1.0 - 0.5 * step * (valQ - 
+									  calcMagneticF(prevValR, curApproxZ, pointsNum - 1, integralCbrt) + 1.0 / prevValR[pointsNum - 1]));
 	rightSweep->vect[pointsNum - 1] = 0.0;
 
-	int splitsNum = pointsNum - 1;
-	for (int i = 1; i < splitsNum; i++)
+	int limit = pointsNum - 2;
+	for (int i = 1; i < limit; i++)
 	{
 		rightSweep->lowerDiagonal[i - 1] = 1.0 + valR[i - 1] / valR[i];
 		rightSweep->mainDiagonal[i] = -(2.0 + (valR[i + 1] + valR[i - 1]) / valR[i]);
@@ -307,8 +322,7 @@ double MagneticFluid::calcQ(const double* approxR, const double* approxZ, double
 double MagneticFluid::calcMagneticF(const double* approxR, const double* approxZ, int index, double integralCbrt)
 {
 	double tmp = 0.0;
-	double param = index / (pointsNum - 1);
-	Vector2 deriv = magneticField->calcInnerDerivative(param);
+	Vector2 deriv = derivatives[index];
 
 	if (index == 0)
 	{
@@ -324,7 +338,7 @@ double MagneticFluid::calcMagneticF(const double* approxR, const double* approxZ
 					(approxR[index + 1] - approxR[index - 1]) * deriv.z) / step;
 	}
 
-	return 0.5 * w * (tmp * tmp + (deriv.r * deriv.r + deriv.z * deriv.z) / fluidParams.chi) / integralCbrt;
+	return 0.5 * fluidParams.w * (tmp * tmp + (deriv.r * deriv.r + deriv.z * deriv.z) / fluidParams.chi) / integralCbrt;
 }
 
 

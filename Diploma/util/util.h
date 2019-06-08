@@ -23,7 +23,11 @@ enum ProblemResultCode
 	FLUID_INVALID_RESULT,
 	FIELD_SUCCESS,
 	FIELD_ITERATIONS_LIMIT_EXCEEDED,
-	FIELD_INVALID_RESULT
+	FIELD_INVALID_RESULT,
+	INVALID_RESULT,
+	SUCCESS,
+	TARGET_REACHED,
+	ACCURACY_NOT_REACHED
 };
 
 
@@ -60,6 +64,26 @@ static inline double norm(const double* next, const double* prev, int size)
 
 	return max;
 }
+
+
+static inline double norm(const Vector2* next, const Vector2* prev, int size)
+{
+	double max = -std::numeric_limits<double>::infinity();
+	double tmp = 0.0;
+
+	for (int i = 0; i < size; i++)
+	{
+		tmp = fmax(fabs(next[i].r - prev[i].r), fabs(next[i].z - prev[i].z));
+
+		if (tmp > max)
+		{
+			max = tmp;
+		}
+	}
+
+	return max;
+}
+
 
 static inline double norm(double** next, double** prev, int linesNum, int columnsNum)
 {

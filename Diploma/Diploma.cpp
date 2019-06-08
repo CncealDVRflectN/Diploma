@@ -1,30 +1,31 @@
 ﻿#include <iostream>
 #include "util/util.h"
-#include "problem/MagneticFluid.h"
+#include "problem/Solution.h"
 #include "plot/PlotLines.h"
 #include "plot/PlotGrid.h"
+#include "plot/PlotIsolines.h"
 
 
 enum OptsIds
 {
 	WINDOW_WIDTH_OPT = 1,
 	WINDOW_HEIGHT_OPT,
-	ANGLE_OPT,
-	TARGET_BOND_OPT,
-	BOND_STEP_OPT,
+	W_PARAM_INITIAL_OPT,
+	W_PARAM_TARGET_OPT,
+	CHI_INITIAL_OPT,
+	CHI_TARGET_OPT,
 	RELAXATION_PARAM_MIN_OPT,
 	ACCURACY_OPT,
 	SPLITS_NUM_OPT,
 	ITERATIONS_MAX_NUM_OPT,
-	RESULTS_NUM_OPT,
+	W_RESULTS_NUM_OPT,
+	CHI_RESULTS_NUM_OPT,
 	FIELD_SURFACE_SPLITS_NUM_OPT,
 	FIELD_INTERNAL_SPLITS_NUM_OPT,
 	FIELD_INFINITY_SPLITS_NUM_OPT,
 	FIELD_ITERATIONS_MAX_NUM_OPT,
 	FIELD_ACCURACY_OPT,
 	FIELD_RELAXATION_PARAM_MIN_OPT,
-	FIELD_CHI_OPT,
-	FIELD_W_OPT,
 	EQUAL_AXIS_OPT,
 	NONDIM_OPT
 };
@@ -33,22 +34,22 @@ enum OptsIds
 static const LongOpt LONG_OPTS[] = {
 	{"window-width",			WINDOW_WIDTH_OPT},
 	{"window-height",			WINDOW_HEIGHT_OPT},
-	{"angle",					ANGLE_OPT},
-	{"target-bond",				TARGET_BOND_OPT},
-	{"bond-step",				BOND_STEP_OPT},
+	{"w-param-initial",			W_PARAM_INITIAL_OPT},
+	{"w-param-target",			W_PARAM_TARGET_OPT},
+	{"chi-param-initial",		CHI_INITIAL_OPT},
+	{"chi-param-target",		CHI_TARGET_OPT},
 	{"relaxation-param-min",	RELAXATION_PARAM_MIN_OPT},
 	{"accuracy",				ACCURACY_OPT},
 	{"splits-num",				SPLITS_NUM_OPT},
 	{"iterations-max-num",		ITERATIONS_MAX_NUM_OPT},
-	{"results-num",				RESULTS_NUM_OPT},
+	{"w-results-num",			W_RESULTS_NUM_OPT},
+	{"chi-results-num",			CHI_RESULTS_NUM_OPT},
 	{"field-surf-splits-num",	FIELD_SURFACE_SPLITS_NUM_OPT},
 	{"field-int-splits-num",	FIELD_INTERNAL_SPLITS_NUM_OPT},
 	{"field-inf-splits-num",	FIELD_INFINITY_SPLITS_NUM_OPT},
 	{"field-iter-max-num",		FIELD_ITERATIONS_MAX_NUM_OPT},
 	{"field-accuracy",			FIELD_ACCURACY_OPT},
 	{"field-relax-param-min",	FIELD_RELAXATION_PARAM_MIN_OPT},
-	{"field-chi",				FIELD_CHI_OPT},
-	{"field-w",					FIELD_W_OPT},
 	{"equal-axis",				EQUAL_AXIS_OPT},
 	{"nondim",					NONDIM_OPT},
 	{nullptr,					0}
@@ -57,15 +58,14 @@ static const LongOpt LONG_OPTS[] = {
 
 typedef struct program_params_t
 {
-	double angle;
-	double targetBond;
-	double bondStep;
+	double wInitial;
+	double wTarget;
 	double relaxationParamMin;
 	double fieldRelaxParamMin;
 	double accuracy;
 	double fieldAccuracy;
-	double chi;
-	double w;
+	double chiInitial;
+	double chiTarget;
 	int windowWidth;
 	int windowHeight;
 	int splitsNum;
@@ -74,7 +74,8 @@ typedef struct program_params_t
 	int fieldInfinitySplitsNum;
 	int iterationsMaxNum;
 	int fieldIterationsMaxNum;
-	int resultsNum;
+	int resultsNumW;
+	int resultsNumChi;
 	bool isEqualAxis;
 	bool isNonDim;
 } ProgramsParams;
@@ -90,14 +91,17 @@ void handleOpts(int optId, char* optPtr, ProgramsParams& programParams)
 		case WINDOW_HEIGHT_OPT:
 			programParams.windowHeight = std::atoi(optPtr);
 			break;
-		case ANGLE_OPT:
-			programParams.angle = std::atof(optPtr) * M_PI / 180.0;
+		case W_PARAM_INITIAL_OPT:
+			programParams.wInitial = std::atof(optPtr);
 			break;
-		case TARGET_BOND_OPT:
-			programParams.targetBond = std::atof(optPtr);
+		case W_PARAM_TARGET_OPT:
+			programParams.wTarget = std::atof(optPtr);
 			break;
-		case BOND_STEP_OPT:
-			programParams.bondStep = std::atof(optPtr);
+		case CHI_INITIAL_OPT:
+			programParams.chiInitial = std::atof(optPtr);
+			break;
+		case CHI_TARGET_OPT:
+			programParams.chiTarget = std::atof(optPtr);
 			break;
 		case RELAXATION_PARAM_MIN_OPT:
 			programParams.relaxationParamMin = std::atof(optPtr);
@@ -111,8 +115,11 @@ void handleOpts(int optId, char* optPtr, ProgramsParams& programParams)
 		case ITERATIONS_MAX_NUM_OPT:
 			programParams.iterationsMaxNum = std::atoi(optPtr);
 			break;
-		case RESULTS_NUM_OPT:
-			programParams.resultsNum = std::atoi(optPtr);
+		case W_RESULTS_NUM_OPT:
+			programParams.resultsNumW = std::atoi(optPtr);
+			break;
+		case CHI_RESULTS_NUM_OPT:
+			programParams.resultsNumChi = std::atoi(optPtr);
 			break;
 		case FIELD_SURFACE_SPLITS_NUM_OPT:
 			programParams.fieldSurfaceSplitsNum = std::atoi(optPtr);
@@ -131,12 +138,6 @@ void handleOpts(int optId, char* optPtr, ProgramsParams& programParams)
 			break;
 		case FIELD_RELAXATION_PARAM_MIN_OPT:
 			programParams.fieldRelaxParamMin = std::atof(optPtr);
-			break;
-		case FIELD_CHI_OPT:
-			programParams.chi = std::atof(optPtr);
-			break;
-		case FIELD_W_OPT:
-			programParams.w = std::atof(optPtr);
 			break;
 		case EQUAL_AXIS_OPT:
 			programParams.isEqualAxis = true;
@@ -178,14 +179,28 @@ void addResultLinePlot(MagneticFluid& fluid, PlotLines& plot, bool isNonDim)
 	double volumeNondimMul = (isNonDim) ? fluid.calcVolumeNondimMul() : 1.0;
 	const Vector2* result = fluid.getLastValidResult();
 	PlotLine plotLine;
-	std::vector<Vector2> resultVector(pointsNum);
 
 	for (int i = 0; i < pointsNum; i++)
 	{
 		plotLine.points.push_back({ volumeNondimMul * result[i].r, volumeNondimMul * result[i].z });
 	}
 
-	sprintf(buffer, "Bo = %.2lf", fluid.getCurrentBond());
+	sprintf(buffer, "W = %.2lf", fluid.getCurrentW());
+
+	plotLine.title = buffer;
+
+	plot.addLine(plotLine);
+}
+
+
+void addHeightCoefsLinePlot(const std::vector<Vector2>& heightCoefs, PlotLines& plot, double chi)
+{
+	char buffer[256];
+	PlotLine plotLine;
+
+	plotLine.points.assign(heightCoefs.begin(), heightCoefs.end());
+
+	sprintf(buffer, "chi = %.2lf", chi);
 
 	plotLine.title = buffer;
 
@@ -214,112 +229,147 @@ int main(int argc, char** argv)
 
 	parseArgs(argc, argv, programParams);
 
-	FluidParams fluidParams;
-	fluidParams.alpha = programParams.angle;
-	fluidParams.chi = programParams.chi;
-	fluidParams.w = programParams.w;
-	fluidParams.bond = programParams.targetBond;
-	fluidParams.bondStep = programParams.bondStep;
-	fluidParams.epsilon = programParams.accuracy;
-	fluidParams.iterationsNumMax = programParams.iterationsMaxNum;
-	fluidParams.relaxParamMin = programParams.relaxationParamMin;
-	fluidParams.splitsNum = programParams.splitsNum;
+	if (programParams.resultsNumW == 0 || programParams.resultsNumChi == 0)
+	{
+		printf("resultsNum = 0\n");
+		return -1;
+	}
 
-	MagneticParams magneticParams;
-	magneticParams.accuracy = programParams.fieldAccuracy;
-	magneticParams.chi = programParams.chi;
-	magneticParams.surfaceSplitsNum = programParams.fieldSurfaceSplitsNum;
-	magneticParams.internalSplitsNum = programParams.fieldInternalSplitsNum;
-	magneticParams.infSplitsNum = programParams.fieldInfinitySplitsNum;
-	magneticParams.iterationsNumMax = programParams.fieldIterationsMaxNum;
-	magneticParams.relaxParamMin = programParams.fieldRelaxParamMin;
+	double curChi = 0.0;
+	double stepChi = 0.0;
 
-	MagneticFluid fluid(fluidParams, magneticParams);
-	FluidResultCode resultCode = FLUID_SUCCESS;
+	if (programParams.resultsNumChi == 1)
+	{
+		stepChi = programParams.chiTarget - programParams.chiInitial;
+		curChi = programParams.chiTarget;
+	}
+	else
+	{
+		stepChi = (programParams.chiTarget - programParams.chiInitial) / (programParams.resultsNumChi - 1);
+		curChi = programParams.chiInitial;
+	}
 
-	sprintf(buffer, "Осесимметричная задача (a = %.1lf)", 180.0 * programParams.angle / M_PI);
+	ProblemParams problemParams;
+	problemParams.accuracy = programParams.accuracy;
+	problemParams.chi = curChi;
+	problemParams.fieldAccuracy = programParams.fieldAccuracy;
+	problemParams.fieldInfinitySplitsNum = programParams.fieldInfinitySplitsNum;
+	problemParams.fieldInternalSplitsNum = programParams.fieldInternalSplitsNum;
+	problemParams.fieldIterationsMaxNum = programParams.fieldIterationsMaxNum;
+	problemParams.fieldRelaxParamMin = programParams.fieldRelaxParamMin;
+	problemParams.fieldSurfaceSplitsNum = programParams.fieldSurfaceSplitsNum;
+	problemParams.iterationsMaxNum = programParams.iterationsMaxNum;
+	problemParams.relaxationParamMin = programParams.relaxationParamMin;
+	problemParams.splitsNum = programParams.splitsNum;
+	problemParams.wInitial = programParams.wInitial;
+	problemParams.wTarget = programParams.wTarget;
+	problemParams.resultsNum = programParams.resultsNumW;
 
-	PlotLinesParams resultsPlotParams;
-	resultsPlotParams.windowWidth = programParams.windowWidth;
-	resultsPlotParams.windowHeight = programParams.windowHeight;
-	resultsPlotParams.title = buffer;
-	resultsPlotParams.labelX = "r";
-	resultsPlotParams.labelY = "z";
-	resultsPlotParams.isEqualAxis = programParams.isEqualAxis;
-
-	PlotLines resultsPlot(resultsPlotParams);
+	Solution solution(problemParams);
 
 	PlotLinesParams heightCoefsPlotParams;
 	heightCoefsPlotParams.windowWidth = programParams.windowWidth;
 	heightCoefsPlotParams.windowHeight = programParams.windowHeight;
-	heightCoefsPlotParams.title = "Коэффициент сжатия";
-	heightCoefsPlotParams.labelX = "Bo";
+	heightCoefsPlotParams.title = "Коэффициент вытягивания";
+	heightCoefsPlotParams.labelX = "W";
 	heightCoefsPlotParams.labelY = "k";
 	heightCoefsPlotParams.isEqualAxis = false;
 
 	PlotLines heightCoefsPlot(heightCoefsPlotParams);
 
-	int possibleResultsNum = (int)(programParams.targetBond / programParams.bondStep) + 1;
-	int resultsNum = (programParams.resultsNum <= possibleResultsNum) ? programParams.resultsNum : possibleResultsNum;
-	int pointsNum = fluid.getPointsNum();
-	double resultsBondStep = programParams.targetBond / (resultsNum - 1);
-	double nextResultBond = 0.0;
-	double curBond = 0.0;
-	double volumeNondimMul = 0.0;
-	std::vector<Vector2> heightCoefs;
-
-	while (resultCode == FLUID_SUCCESS)
+	while (curChi <= programParams.chiTarget + 0.0005)
 	{
-		resultCode = fluid.calcNextValidResult();
-		curBond = fluid.getCurrentBond();
+		ProblemResultCode resultCode = SUCCESS;
 
-		if (curBond >= nextResultBond && (resultCode == FLUID_SUCCESS || resultCode == FLUID_TARGET_BOND_REACHED))
+		solution.setChi(curChi);
+
+		sprintf(buffer, "Осесимметричная задача (chi = %.1lf)", curChi);
+
+		PlotLinesParams resultsPlotParams;
+		resultsPlotParams.windowWidth = programParams.windowWidth;
+		resultsPlotParams.windowHeight = programParams.windowHeight;
+		resultsPlotParams.title = buffer;
+		resultsPlotParams.labelX = "r";
+		resultsPlotParams.labelY = "z";
+		resultsPlotParams.isEqualAxis = programParams.isEqualAxis;
+
+		PlotLines resultsPlot(resultsPlotParams);
+
+		std::vector<Vector2> heightCoefs;
+
+		solution.calcInitials();
+		solution.calcResult(0.0);
+		addResultLinePlot(*(solution.getMagneticFluid()), resultsPlot, programParams.isNonDim);
+		heightCoefs.push_back({ solution.getCurrentW(), calcHeightCoef(*(solution.getMagneticFluid())) });
+
+		while (resultCode == SUCCESS)
 		{
-			addResultLinePlot(fluid, resultsPlot, programParams.isNonDim);
+			resultCode = solution.calcNextResult();
 
-			nextResultBond += resultsBondStep;
+			if (resultCode == SUCCESS || resultCode == TARGET_REACHED)
+			{
+				addResultLinePlot(*solution.getMagneticFluid(), resultsPlot, programParams.isNonDim);
+
+				heightCoefs.push_back({ solution.getCurrentW(), calcHeightCoef(*solution.getMagneticFluid()) });
+			}
 		}
 
-		heightCoefs.push_back({ curBond, calcHeightCoef(fluid) });
-	}
+		addHeightCoefsLinePlot(heightCoefs, heightCoefsPlot, curChi);
 
-	if (resultCode != FLUID_SUCCESS && resultCode != FLUID_TARGET_BOND_REACHED)
-	{
-		printf("Target bond number can't be reached\n");
+		if (resultCode != TARGET_REACHED)
+		{
+			printf("Target W parameter can't be reached\n");
+
+			system("pause");
+
+			return -1;
+		}
+
+		PlotGridParams plotGridParams;
+		plotGridParams.windowWidth = programParams.windowWidth;
+		plotGridParams.windowHeight = programParams.windowHeight;
+		plotGridParams.title = "Вычислительная сетка";
+		plotGridParams.labelX = "r";
+		plotGridParams.labelY = "z";
+		plotGridParams.isEqualAxis = true;
+		plotGridParams.volumeNonDimMul = (programParams.isNonDim) ? (*solution.getMagneticFluid()).calcVolumeNondimMul() : 1.0;
+
+		PlotGrid plotGrid(plotGridParams);
+		plotGrid.setGrid(solution.getLastValidFieldGrid(), solution.getGridLinesNum(),
+			solution.getGridColumnsNum(), solution.getGridSurfaceColumnIndex());
+
+		PlotIsolinesParams plotIsolinesParams;
+		plotIsolinesParams.windowWidth = programParams.windowWidth;
+		plotIsolinesParams.windowHeight = programParams.windowHeight;
+		plotIsolinesParams.title = "Изолинии потенциала магнитного поля";
+		plotIsolinesParams.labelX = "r";
+		plotIsolinesParams.labelY = "z";
+		plotIsolinesParams.isEqualAxis = true;
+		plotIsolinesParams.volumeNonDimMul = (programParams.isNonDim) ? (*solution.getMagneticFluid()).calcVolumeNondimMul() : 1.0;
+
+		PlotIsolines plotIsolines(plotIsolinesParams);
+		plotIsolines.setGridAndValues(solution.getLastValidFieldGrid(), solution.getLastValidFieldPotential(),
+			solution.getGridLinesNum(), solution.getGridColumnsNum(),
+			solution.getGridSurfaceColumnIndex());
+
+		resultsPlot.plot();
+		plotGrid.plot();
+		plotIsolines.plot();
 
 		system("pause");
 
-		return -1;
+		resultsPlot.close();
+		plotGrid.close();
+		plotIsolines.close();
+
+		curChi += stepChi;
 	}
 
-	PlotGridParams plotGridParams;
-	plotGridParams.windowWidth = programParams.windowWidth;
-	plotGridParams.windowHeight = programParams.windowHeight;
-	plotGridParams.title = "Вычислительная сетка";
-	plotGridParams.labelX = "r";
-	plotGridParams.labelY = "z";
-	plotGridParams.isEqualAxis = true;
-
-	MagneticField* magneticField = fluid.getMagneticField();
-
-	PlotGrid plotGrid(plotGridParams);
-	plotGrid.setGrid(magneticField->getLastValidGrid(), magneticField->getGridLinesNum(), magneticField->getGridColumnsNum());
-
-	PlotLine heightCoefPlotLine;
-	heightCoefPlotLine.points = heightCoefs;
-	heightCoefPlotLine.title = "Осесимметричная задача";
-
-	heightCoefsPlot.addLine(heightCoefPlotLine);
-
-	resultsPlot.plot();
 	heightCoefsPlot.plot();
-	plotGrid.plot();
 
 	system("pause");
 
-	resultsPlot.close();
 	heightCoefsPlot.close();
-	plotGrid.close();
 
 	return 0;
 }
