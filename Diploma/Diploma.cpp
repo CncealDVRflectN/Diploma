@@ -277,7 +277,7 @@ int main(int argc, char** argv)
 
 	PlotLines heightCoefsPlot(heightCoefsPlotParams);
 
-	while (curChi <= programParams.chiTarget + 0.0005)
+	for (int i = 0; i < programParams.resultsNumChi; i++)
 	{
 		ProblemResultCode resultCode = SUCCESS;
 
@@ -298,11 +298,11 @@ int main(int argc, char** argv)
 		std::vector<Vector2> heightCoefs;
 
 		solution.calcInitials();
-		solution.calcResult(0.0);
+		//solution.calcResult(0.0);
 		addResultLinePlot(*(solution.getMagneticFluid()), resultsPlot, programParams.isNonDim);
 		heightCoefs.push_back({ solution.getCurrentW(), calcHeightCoef(*(solution.getMagneticFluid())) });
 
-		while (resultCode == SUCCESS)
+		/*while (resultCode == SUCCESS)
 		{
 			resultCode = solution.calcNextResult();
 
@@ -323,7 +323,7 @@ int main(int argc, char** argv)
 			system("pause");
 
 			return -1;
-		}
+		}*/
 
 		PlotGridParams plotGridParams;
 		plotGridParams.windowWidth = programParams.windowWidth;

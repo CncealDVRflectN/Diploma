@@ -1,0 +1,6 @@
+.git
+
+.vs/Diploma
+.vs/ProjectSettings.json
+.vs/*.sqlite
+.vs/VSWorkspaceState.json

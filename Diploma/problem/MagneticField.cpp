@@ -22,7 +22,7 @@ MagneticField::MagneticField(const MagneticParams& params)
 	gridColumnsNum = params.internalSplitsNum + params.infSplitsNum + 1;
 	surfaceColumnIndex = params.internalSplitsNum;
 
-	relaxationParam = 1.0;
+	relaxationParam = 1.7;
 
 	grid = new Vector2*[gridLinesNum];
 	lastValidValues = new double*[gridLinesNum];
@@ -149,7 +149,7 @@ void MagneticField::setGrid(Vector2** grid)
 
 void MagneticField::setRelaxationParam(double relaxParam)
 {
-	relaxationParam = relaxParam;
+	relaxationParam = 1.7;// relaxParam;
 }
 
 
@@ -255,7 +255,7 @@ void MagneticField::generateGrid(const Vector2* surfacePoints, int pointsNum)
 
 void MagneticField::calcInitialApproximation()
 {
-	relaxationParam = 1.0;
+	relaxationParam = 1.7;
 	iterationsCounter = 0U;
 
 	double b = 3.0 / (3.0 + params.chi);
@@ -267,23 +267,31 @@ void MagneticField::calcInitialApproximation()
 		for (int j = 0; j <= surfaceColumnIndex; j++)
 		{
 			z = grid[i][j].z;
-			lastValidValues[i][j] = b * z;
+			lastValidValues[i][j] = 0.0;// b * z;
 		}
+
+		z = grid[i][surfaceColumnIndex].z;
+		lastValidValues[i][surfaceColumnIndex] = 0.0;// b * z;
 
 		for (int j = surfaceColumnIndex + 1; j < gridColumnsNum; j++)
 		{
 			r = grid[i][j].r;
 			z = grid[i][j].z;
 
-			lastValidValues[i][j] = z - (1.0 - b) * z / (volume * pow(r * r + z * z, 1.5));
+			lastValidValues[i][j] = 0.0;// z - (1.0 - b) * z / (volume * pow(r * r + z * z, 1.5));
 		}
+
+		r = grid[i][gridColumnsNum - 1].r;
+		z = grid[i][gridColumnsNum - 1].z;
+
+		lastValidValues[i][gridColumnsNum - 1] = z - (1.0 - b) * z / (volume * pow(r * r + z * z, 1.5));
 	}
 }
 
 
-double MagneticField::calcCoefficientIntegral(const Vector2& vert1, const Vector2& vert2, const Vector2& vert3, double doubleTriangleArea)
+double MagneticField::calcCoefficientIntegral(const Vector2& vert1, const Vector2& vert2, const Vector2& vert3, double doubleTriangleArea, double chi)
 {
-	return doubleTriangleArea * (1.0 + params.chi) * (vert1.r + vert2.r + vert3.r) / 6.0;
+	return doubleTriangleArea * (1.0 + chi) * (vert1.r + vert2.r + vert3.r) / 6.0;
 }
 
 
@@ -292,6 +300,7 @@ double MagneticField::calcCoefficient(int i, int j, int coefIndex)
 	double result = 0.0;
 	double doubleTriangleArea = 0.0;
 	double integralVal = 0.0;
+	double chi = 0.0;
 
 	Indices2 curIndices;
 	Indices2 nextIndices;
@@ -323,8 +332,10 @@ double MagneticField::calcCoefficient(int i, int j, int coefIndex)
 			vert2 = grid[curIndices.i][curIndices.j];
 			vert3 = grid[nextIndices.i][nextIndices.j];
 
+			chi = (curIndices.j > surfaceColumnIndex || nextIndices.j > surfaceColumnIndex || j > surfaceColumnIndex) ? 0.0 : params.chi;
+
 			doubleTriangleArea = calcDoubleTriangleArea(vert1, vert2, vert3);
-			integralVal = calcCoefficientIntegral(vert1, vert2, vert3, doubleTriangleArea);
+			integralVal = calcCoefficientIntegral(vert1, vert2, vert3, doubleTriangleArea, chi);
 
 			difZ = vert3.z - vert2.z;
 			difR = vert3.r - vert2.r;
@@ -348,8 +359,10 @@ double MagneticField::calcCoefficient(int i, int j, int coefIndex)
 			vert2 = grid[curIndices.i][curIndices.j];
 			vert3 = grid[nextIndices.i][nextIndices.j];
 
+			chi = (curIndices.j > surfaceColumnIndex || nextIndices.j > surfaceColumnIndex || j > surfaceColumnIndex) ? 0.0 : params.chi;
+
 			doubleTriangleArea = calcDoubleTriangleArea(vert1, vert2, vert3);
-			integralVal = calcCoefficientIntegral(vert1, vert2, vert3, doubleTriangleArea);
+			integralVal = calcCoefficientIntegral(vert1, vert2, vert3, doubleTriangleArea, chi);
 
 			result += ((vert3.z - vert2.z) * (vert2.z - vert1.z) + (vert3.r - vert2.r) * (vert2.r - vert1.r)) *
 				integralVal / (doubleTriangleArea * doubleTriangleArea);
@@ -369,8 +382,10 @@ double MagneticField::calcCoefficient(int i, int j, int coefIndex)
 			vert2 = grid[curIndices.i][curIndices.j];
 			vert3 = grid[nextIndices.i][nextIndices.j];
 
+			chi = (curIndices.j > surfaceColumnIndex || nextIndices.j > surfaceColumnIndex || j > surfaceColumnIndex) ? 0.0 : params.chi;
+
 			doubleTriangleArea = calcDoubleTriangleArea(vert1, vert2, vert3);
-			integralVal = calcCoefficientIntegral(vert1, vert2, vert3, doubleTriangleArea);
+			integralVal = calcCoefficientIntegral(vert1, vert2, vert3, doubleTriangleArea, chi);
 
 			result += ((vert3.z - vert2.z) * (vert1.z - vert3.z) + (vert3.r - vert2.r) * (vert1.r - vert3.r)) *
 				integralVal / (doubleTriangleArea * doubleTriangleArea);
@@ -452,15 +467,20 @@ void MagneticField::calcNextApproximation()
 
 		//nextApprox[i][surfaceColumnIndex] = calcNextValue(i, surfaceColumnIndex);
 
-		for (int j = gridColumnsNum - 2; j > surfaceColumnIndex; j--)
+		for (int j = gridColumnsNum - 2; j >= 0; j--)
 		{
 			nextApprox[i][j] = calcNextValue(i, j);
 		}
 
-		for (int j = surfaceColumnIndex - 1; j >= 0; j--)
+		/*for (int j = surfaceColumnIndex - 1; j >= 0; j--)
 		{
 			nextApprox[i][j] = calcNextValue(i, j);
-		}
+		}*/
+
+		/*for (int j = gridColumnsNum - 2; j >= 0; j--)
+		{
+			nextApprox[i][j] = calcNextValue(i, j);
+		}*/
 	}
 
 	/*double b = 3.0 / (3.0 + params.chi);
@@ -490,7 +510,7 @@ void MagneticField::calcNextApproximation()
 ProblemResultCode MagneticField::calcRelaxation()
 {
 	double** tmpPtr;
-	double curEpsilon = params.accuracy * relaxationParam;
+	double curEpsilon = params.accuracy;// * relaxationParam;
 	int counter = 0;
 	int limitColumns = gridColumnsNum - 1;
 
@@ -519,8 +539,11 @@ ProblemResultCode MagneticField::calcRelaxation()
 
 	for (int i = 0; i < gridLinesNum; i++)
 	{
-		nextApprox[i][surfaceColumnIndex] = b * grid[i][surfaceColumnIndex].z;
-		curApprox[i][surfaceColumnIndex] = b * grid[i][surfaceColumnIndex].z;
+		//nextApprox[i][surfaceColumnIndex] = b * grid[i][surfaceColumnIndex].z;
+		//curApprox[i][surfaceColumnIndex] = b * grid[i][surfaceColumnIndex].z;
+
+		//nextApprox[i][0] = b * grid[i][0].z;
+		//curApprox[i][0] = b * grid[i][0].z;
 
 //		nextApprox[i][0] = b * grid[i][0].z;
 //		curApprox[i][0] = b * grid[i][0].z;
@@ -528,9 +551,32 @@ ProblemResultCode MagneticField::calcRelaxation()
 		//nextApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z - ((1.0 - b) * grid[i][gridColumnsNum - 1].z) / 
 		//	pow(grid[i][gridColumnsNum - 1].z * grid[i][gridColumnsNum - 1].z + grid[i][gridColumnsNum - 1].r * grid[i][gridColumnsNum - 1].r, 3.0 / 2.0);
 		//curApprox[i][gridColumnsNum - 1] = nextApprox[i][gridColumnsNum - 1];
-		nextApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z;
-		curApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z;
+		//nextApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z;
+		//curApprox[i][gridColumnsNum - 1] = grid[i][gridColumnsNum - 1].z;
+		double volume = M_PI_2 * M_PI_2 * M_PI_2;
+		double r = grid[i][gridColumnsNum - 1].r;
+		double z = grid[i][gridColumnsNum - 1].z;
+
+		nextApprox[i][gridColumnsNum - 1] = z - (1.0 - b) * z / (volume * pow(r * r + z * z, 1.5));
+		curApprox[i][gridColumnsNum - 1] = z - (1.0 - b) * z / (volume * pow(r * r + z * z, 1.5));
 	}
+
+	/*for (int j = 0; j <= surfaceColumnIndex; j++)
+	{
+		double z = grid[gridLinesNum - 1][j].z;
+		nextApprox[gridLinesNum - 1][j] = b * z;
+		curApprox[gridLinesNum - 1][j] = b * z;
+	}
+
+	for (int j = surfaceColumnIndex + 1; j < gridColumnsNum; j++)
+	{
+		double volume = M_PI_2 * M_PI_2 * M_PI_2;
+		double r = grid[gridLinesNum - 1][j].r;
+		double z = grid[gridLinesNum - 1][j].z;
+
+		nextApprox[gridLinesNum - 1][j] = z - (1.0 - b) * z / (volume * pow(r * r + z * z, 1.5));
+		curApprox[gridLinesNum - 1][j] = z - (1.0 - b) * z / (volume * pow(r * r + z * z, 1.5));
+	}*/
 
 /*	for (int i = 0; i <= surfaceColumnIndex; i++)
 	{
@@ -571,6 +617,8 @@ ProblemResultCode MagneticField::calcRelaxation()
 
 	do
 	{
+		max = 0.0;
+
 		tmpPtr = nextApprox;
 		nextApprox = curApprox;
 		curApprox = tmpPtr;
@@ -599,7 +647,7 @@ ProblemResultCode MagneticField::calcRelaxation()
 
 				max = std::fmax(max, std::abs(dif));
 
-				printf("%lf ", dif);
+				printf("%.3e ", dif);
 			}
 
 			for (int j = surfaceColumnIndex + 1; j < gridColumnsNum; j++)
@@ -609,7 +657,7 @@ ProblemResultCode MagneticField::calcRelaxation()
 
 				max = std::fmax(max, std::abs(dif));
 
-				printf("%lf ", dif);
+				printf("%.3e ", dif);
 			}
 
 			printf("\n");
@@ -624,11 +672,15 @@ ProblemResultCode MagneticField::calcRelaxation()
 		printf("\n\n");
 
 		counter++;
-	} while (norm(nextApprox, curApprox, gridLinesNum, surfaceColumnIndex + 1) > curEpsilon && counter < params.iterationsNumMax);
+	} while (norm(nextApprox, curApprox, gridLinesNum, gridColumnsNum) > curEpsilon);
 
 	iterationsCounter += counter;
 
-	printf("\nMax discrepancy: %lf\n\n", max);
+	printf("\nMax discrepancy: %.3e\n", max);
+	printf("\nIterations counter: %d\n", counter);
+	printf("\nRelaxation parameter: %.3e\n", relaxationParam);
+
+	system("pause");
 
 	if (counter >= params.iterationsNumMax)
 	{

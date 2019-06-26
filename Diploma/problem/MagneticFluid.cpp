@@ -279,7 +279,7 @@ double MagneticFluid::calcIntegralTrapeze(const double* approxR, const double* a
 		result += approxR[i] * approxZ[i] * (approxR[i + 1] - approxR[i - 1]);
 	}
 
-	return M_PI * result;
+	return 2.0 * M_PI * result;
 }
 
 
@@ -293,7 +293,7 @@ double MagneticFluid::calcIntegralTrapeze(const Vector2* approx)
 		result += approx[i].r * approx[i].z * (approx[i + 1].r - approx[i - 1].r);
 	}
 
-	return M_PI * result;
+	return 2.0 * M_PI * result;
 }
 
 

@@ -81,7 +81,7 @@ private:
 	unsigned int iterationsCounter;
 
 
-	double calcCoefficientIntegral(const Vector2& vert1, const Vector2& vert2, const Vector2& vert3, double doubleTriangleArea);
+	double calcCoefficientIntegral(const Vector2& vert1, const Vector2& vert2, const Vector2& vert3, double doubleTriangleArea, double chi);
 
 	double calcCoefficient(int i, int j, int coefIndex);
 
