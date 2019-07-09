@@ -4,3 +4,7 @@
 .vs/ProjectSettings.json
 .vs/*.sqlite
 .vs/VSWorkspaceState.json
+*.ipch
+*.db
+*.opendb
+*.suo

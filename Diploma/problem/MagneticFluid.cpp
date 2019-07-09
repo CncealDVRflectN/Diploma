@@ -1,4 +1,5 @@
 #include "MagneticFluid.h"
+#include <cmath>
 #include <algorithm>
 
 

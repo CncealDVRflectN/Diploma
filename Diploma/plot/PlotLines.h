@@ -2,6 +2,7 @@
 #define DIPLOMA_PLOTLINES_H
 
 #include <vector>
+#include <string>
 #include "../util/util.h"
 
 

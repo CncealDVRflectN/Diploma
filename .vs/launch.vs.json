@@ -20,9 +20,9 @@
         "--iterations-max-num=10000",
         "--w-results-num=1",
         "--chi-results-num=1",
-        "--field-surf-splits-num=24",
-        "--field-int-splits-num=24",
-        "--field-inf-splits-num=30",
+        "--field-surf-splits-num=8",
+        "--field-int-splits-num=8",
+        "--field-inf-splits-num=10",
         "--field-iter-max-num=10000",
         "--field-accuracy=0.00001",
         "--field-relax-param-min=0.00001",
@@ -35,6 +35,11 @@
       "project": "CMakeLists.txt",
       "projectTarget": "Diploma.exe (Diploma\\Diploma.exe)",
       "name": "Diploma.exe (Diploma\\Diploma.exe)"
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "name": "CMakeLists.txt"
     }
   ]
 }
