@@ -19,27 +19,27 @@ typedef struct plot_isolines_params_t
 
 class PlotIsolines
 {
-public:
-	PlotIsolines(const PlotIsolinesParams& plotParams);
-
-	~PlotIsolines();
-
-	void setGridAndValues(Vector2** grid, double** values, int linesNum, int columnsNum, int surfaceColumnIndex);
-
-	void plot();
-
-	void close();
-
-private:
-	Vector2** grid;
-	double** values;
-	int gridLinesNum;
-	int gridColumnsNum;
-	int surfaceColumnIndex;
-
-	PlotIsolinesParams params;
-
-	FILE* pipe;
+//public:
+//	PlotIsolines(const PlotIsolinesParams& plotParams);
+//
+//	~PlotIsolines();
+//
+//	void setGridAndValues(Vector2** grid, double** values, int linesNum, int columnsNum, int surfaceColumnIndex);
+//
+//	void plot();
+//
+//	void close();
+//
+//private:
+//	Vector2** grid;
+//	double** values;
+//	int gridLinesNum;
+//	int gridColumnsNum;
+//	int surfaceColumnIndex;
+//
+//	PlotIsolinesParams params;
+//
+//	FILE* pipe;
 };
 
 #endif

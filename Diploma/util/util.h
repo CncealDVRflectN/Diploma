@@ -33,11 +33,11 @@ enum ProblemResultCode
 
 // Vector2
 
-typedef struct vector2_t
-{
-	double r;
-	double z;
-} Vector2;
+//typedef struct vector2_t
+//{
+//	double r;
+//	double z;
+//} Vector2;
 
 
 typedef struct indices2_t
@@ -47,64 +47,64 @@ typedef struct indices2_t
 } Indices2;
 
 
-static inline double norm(const double* next, const double* prev, int size)
-{
-	double max = -std::numeric_limits<double>::infinity();
-	double tmp = 0.0;
-
-	for (int i = 0; i < size; i++)
-	{
-		tmp = fabs(next[i] - prev[i]);
-
-		if (tmp > max)
-		{
-			max = tmp;
-		}
-	}
-
-	return max;
-}
-
-
-static inline double norm(const Vector2* next, const Vector2* prev, int size)
-{
-	double max = -std::numeric_limits<double>::infinity();
-	double tmp = 0.0;
-
-	for (int i = 0; i < size; i++)
-	{
-		tmp = fmax(fabs(next[i].r - prev[i].r), fabs(next[i].z - prev[i].z));
-
-		if (tmp > max)
-		{
-			max = tmp;
-		}
-	}
-
-	return max;
-}
+//static inline double norm(const double* next, const double* prev, int size)
+//{
+//	double max = -std::numeric_limits<double>::infinity();
+//	double tmp = 0.0;
+//
+//	for (int i = 0; i < size; i++)
+//	{
+//		tmp = fabs(next[i] - prev[i]);
+//
+//		if (tmp > max)
+//		{
+//			max = tmp;
+//		}
+//	}
+//
+//	return max;
+//}
 
 
-static inline double norm(double** next, double** prev, int linesNum, int columnsNum)
-{
-	double max = -std::numeric_limits<double>::infinity();
-	double tmp = 0.0;
+//static inline double norm(const Vector2* next, const Vector2* prev, int size)
+//{
+//	double max = -std::numeric_limits<double>::infinity();
+//	double tmp = 0.0;
+//
+//	for (int i = 0; i < size; i++)
+//	{
+//		tmp = fmax(fabs(next[i].r - prev[i].r), fabs(next[i].z - prev[i].z));
+//
+//		if (tmp > max)
+//		{
+//			max = tmp;
+//		}
+//	}
+//
+//	return max;
+//}
 
-	for (int i = 0; i < linesNum; i++)
-	{
-		for (int j = 0; j < columnsNum; j++)
-		{
-			tmp = fabs(next[i][j] - prev[i][j]);
 
-			if (tmp > max)
-			{
-				max = tmp;
-			}
-		}
-	}
-
-	return max;
-}
+//static inline double norm(double** next, double** prev, int linesNum, int columnsNum)
+//{
+//	double max = -std::numeric_limits<double>::infinity();
+//	double tmp = 0.0;
+//
+//	for (int i = 0; i < linesNum; i++)
+//	{
+//		for (int j = 0; j < columnsNum; j++)
+//		{
+//			tmp = fabs(next[i][j] - prev[i][j]);
+//
+//			if (tmp > max)
+//			{
+//				max = tmp;
+//			}
+//		}
+//	}
+//
+//	return max;
+//}
 
 static inline double calcLerp(double begin, double end, double param)
 {
@@ -130,48 +130,48 @@ static inline void relaxation(double** nextApprox, double** curApprox, int lines
 	}
 }
 
-static inline Vector2 calcLerp(const Vector2 &begin, const Vector2 &end, double param)
-{
-	return { calcLerp(begin.r, end.r, param), calcLerp(begin.z, end.z, param) };
-}
-
-static inline double calcDoubleTriangleArea(const Vector2& vert1, const Vector2& vert2, const Vector2& vert3)
-{
-	return (vert1.r - vert2.r) * (vert3.z - vert2.z) - (vert3.r - vert2.r) * (vert1.z - vert2.z);
-}
-
-static inline Vector2 calcParametricPoint(const Vector2* linePoints, int pointsNum, double param)
-{
-	int prevIndex = (int)((pointsNum - 1) * param);
-	int nextIndex = prevIndex + 1;
-
-	if (prevIndex >= pointsNum - 1)
-	{
-		prevIndex = pointsNum - 1;
-		nextIndex = prevIndex;
-	}
-
-	if (prevIndex < 0)
-	{
-		prevIndex = 0;
-	}
-
-	if (nextIndex < 0)
-	{
-		nextIndex = 0;
-	}
-
-	if (prevIndex == nextIndex)
-	{
-		return linePoints[prevIndex];
-	}
-
-	double prevParam = (double)prevIndex / (pointsNum - 1);
-	double nextParam = (double)nextIndex / (pointsNum - 1);
-	double localParam = (param - prevParam) / (nextParam - prevParam);
-
-	return calcLerp(linePoints[prevIndex], linePoints[nextIndex], localParam);
-}
+//static inline Vector2 calcLerp(const Vector2 &begin, const Vector2 &end, double param)
+//{
+//	return { calcLerp(begin.r, end.r, param), calcLerp(begin.z, end.z, param) };
+//}
+//
+//static inline double calcDoubleTriangleArea(const Vector2& vert1, const Vector2& vert2, const Vector2& vert3)
+//{
+//	return (vert1.r - vert2.r) * (vert3.z - vert2.z) - (vert3.r - vert2.r) * (vert1.z - vert2.z);
+//}
+//
+//static inline Vector2 calcParametricPoint(const Vector2* linePoints, int pointsNum, double param)
+//{
+//	int prevIndex = (int)((pointsNum - 1) * param);
+//	int nextIndex = prevIndex + 1;
+//
+//	if (prevIndex >= pointsNum - 1)
+//	{
+//		prevIndex = pointsNum - 1;
+//		nextIndex = prevIndex;
+//	}
+//
+//	if (prevIndex < 0)
+//	{
+//		prevIndex = 0;
+//	}
+//
+//	if (nextIndex < 0)
+//	{
+//		nextIndex = 0;
+//	}
+//
+//	if (prevIndex == nextIndex)
+//	{
+//		return linePoints[prevIndex];
+//	}
+//
+//	double prevParam = (double)prevIndex / (pointsNum - 1);
+//	double nextParam = (double)nextIndex / (pointsNum - 1);
+//	double localParam = (param - prevParam) / (nextParam - prevParam);
+//
+//	return calcLerp(linePoints[prevIndex], linePoints[nextIndex], localParam);
+//}
 
 
 // Args parsing

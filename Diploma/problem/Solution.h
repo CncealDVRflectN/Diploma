@@ -27,62 +27,62 @@ typedef struct problem_params_t
 
 class Solution
 {
-public:
-	Solution(const ProblemParams& params);
-
-	~Solution();
-
-	MagneticFluid* getMagneticFluid();
-
-	MagneticField* getMagneticField();
-
-	Vector2* getLastValidSurface();
-
-	Vector2** getLastValidFieldGrid();
-
-	double** getLastValidFieldPotential();
-
-	double getCurrentW();
-
-	int getSurfacePointsNum();
-
-	int getGridLinesNum();
-
-	int getGridColumnsNum();
-
-	int getGridSurfaceColumnIndex();
-
-	void setChi(double chi);
-
-	void calcInitials();
-
-	ProblemResultCode calcResult(double w);
-
-	ProblemResultCode calcNextResult();
-
-private:
-	MagneticField* field;
-	MagneticFluid* fluid;
-
-	ProblemParams params;
-
-	Vector2* lastValidFluidSurface;
-	Vector2** lastValidFieldGrid;
-	double** lastValidFieldPotential;
-
-	double curW;
-	double stepW;
-
-
-	FluidParams getFluidParams(const ProblemParams& problemParams);
-
-	MagneticParams getFieldParams(const ProblemParams& problemParams);
-
-	void updateLastValidResults();
-
-	void calcDerivatives();
-
-	bool isAccuracyReached();
+//public:
+//	Solution(const ProblemParams& params);
+//
+//	~Solution();
+//
+//	MagneticFluid* getMagneticFluid();
+//
+//	MagneticField* getMagneticField();
+//
+//	Vector2* getLastValidSurface();
+//
+//	Vector2** getLastValidFieldGrid();
+//
+//	double** getLastValidFieldPotential();
+//
+//	double getCurrentW();
+//
+//	int getSurfacePointsNum();
+//
+//	int getGridLinesNum();
+//
+//	int getGridColumnsNum();
+//
+//	int getGridSurfaceColumnIndex();
+//
+//	void setChi(double chi);
+//
+//	void calcInitials();
+//
+//	ProblemResultCode calcResult(double w);
+//
+//	ProblemResultCode calcNextResult();
+//
+//private:
+//	MagneticField* field;
+//	MagneticFluid* fluid;
+//
+//	ProblemParams params;
+//
+//	Vector2* lastValidFluidSurface;
+//	Vector2** lastValidFieldGrid;
+//	double** lastValidFieldPotential;
+//
+//	double curW;
+//	double stepW;
+//
+//
+//	FluidParams getFluidParams(const ProblemParams& problemParams);
+//
+//	MagneticParams getFieldParams(const ProblemParams& problemParams);
+//
+//	void updateLastValidResults();
+//
+//	void calcDerivatives();
+//
+//	bool isAccuracyReached();
 };
 
 

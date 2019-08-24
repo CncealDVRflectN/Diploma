@@ -2,13 +2,14 @@
 #define DIPLOMA_PLOTLINES_H
 
 #include <vector>
+#include <string>
 #include "../util/util.h"
 
 
 typedef struct plot_line_t
 {
-	std::vector<Vector2> points;
-	std::string title;
+	//std::vector<Vector2> points;
+	//std::string title;
 } PlotLine;
 
 
