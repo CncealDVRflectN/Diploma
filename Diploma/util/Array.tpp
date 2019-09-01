@@ -9,52 +9,59 @@
 #pragma region Constructors
 
 template <typename T>
-Array<T>::Array(size_t size) : elements(size) {}
+Array<T>::Array(arr_size_t size) : mElements(size), mSize(size) 
+{
+    assert_message(size > 0, "Incorrect Array size");
+}
 
 
 template <typename T>
-Array<T>::Array(const std::valarray<T>& valArray) : elements(valArray) {}
+Array<T>::Array(const std::valarray<T>& valArray) : mElements(valArray), mSize(valArray.size()) {}
 
 
 template <typename T>
-Array<T>::Array(const Array& array) : elements(array.elements) {}
+Array<T>::Array(const Array& array) : mElements(array.mElements), mSize(array.mSize) {}
 
 
 template <typename T>
-Array<T>::Array(Array<T>&& rVal) : elements(std::move(rVal.elements)) {}
+Array<T>::Array(Array<T>&& rVal) : mElements(std::move(rVal.mElements)) 
+{
+    mSize = rVal.mSize;
+    rVal.mSize = 0;
+}
 
-#pragma endregion Constructors
+#pragma endregion
 
 
 #pragma region Array parameters
 
 template <typename T>
-inline size_t Array<T>::size() const
+inline arr_size_t Array<T>::size() const
 {
-    return elements.size();
+    return mSize;
 }
 
-#pragma endregion Array parameters
+#pragma endregion
 
 
 #pragma region Access operators
 
 template <typename T>
-inline const T& Array<T>::operator()(size_t index) const
+inline const T& Array<T>::operator()(arr_size_t index) const
 {
-    assert_message(index >= 0 && index < elements.size(), "Array index is out of bounds");
-    return elements[index];
+    assert_message(index >= 0 && index < mSize, "Array index is out of bounds");
+    return mElements[index];
 }
 
 
 template <typename T>
-inline T& Array<T>::operator()(size_t index)
+inline T& Array<T>::operator()(arr_size_t index)
 {
-    assert_message(index >= 0 && index < elements.size(), "Array index is out of bounds");
-    return elements[index];
+    assert_message(index >= 0 && index < mSize, "Array index is out of bounds");
+    return mElements[index];
 }
 
-#pragma endregion Access operators
+#pragma endregion
 
 
 #pragma region Assignment operators
@@ -62,17 +69,17 @@ inline T& Array<T>::operator()(size_t index)
 template <typename T>
 inline Array<T>& Array<T>::operator=(const Array<T>& r)
 {
-    elements = r.elements;
+    mElements = r.mElements;
 }
 
 
 template <typename T>
 inline Array<T>& Array<T>::operator=(Array<T>&& rVal)
 {
-    elements = std::move(rVal.elements);
+    mElements = std::move(rVal.mElements);
 }
 
-#pragma endregion Assignment operators
+#pragma endregion
 
 
 #pragma region Arithmetic operators
@@ -82,7 +89,8 @@ inline Array<T> operator+(const Array<T>& l, const Array<T>& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator + cannot be applied to Arrays of this type");
     assert_message(l.size() == r.size(), "Operator + cannot be applied to Arrays of different sizes");
-    return Array(l.elements + r.elements);
+
+    return Array(l.mElements + r.mElements);
 }
 
 
@@ -91,7 +99,8 @@ inline Array<T> operator-(const Array<T>& l, const Array<T>& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator - cannot be applied to Arrays of this type");
     assert_message(l.size() == r.size(), "Operator - cannot be applied to Arrays of different sizes");
-    return Array(l.elements - r.elements);
+
+    return Array(l.mElements - r.mElements);
 }
 
 
@@ -100,7 +109,8 @@ inline Array<T> operator*(const Array<T>& l, const Array<T>& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator * cannot be applied to Arrays of this type");
     assert_message(l.size() == r.size(), "Operator * cannot be applied to Arrays of different sizes");
-    return Array(l.elements * r.elements);
+
+    return Array(l.mElements * r.mElements);
 }
 
 
@@ -109,7 +119,8 @@ inline Array<T> operator/(const Array<T>& l, const Array<T>& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator / cannot be applied to Arrays of this type");
     assert_message(l.size() == r.size(), "Operator / cannot be applied to Arrays of different sizes");
-    return Array(l.elements / r.elements);
+    
+    return Array(l.mElements / r.mElements);
 }
 
 
@@ -118,12 +129,9 @@ inline Array<T> operator*(const Array<T>& l, const T& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator * cannot be applied to Array of this type");
 
-    Array<T> result(elements);
+    Array<T> result(l);
 
-    for (T& val : result)
-    {
-        val *= r;
-    }
+    result *= r;
 
     return result;
 }
@@ -142,17 +150,14 @@ inline Array<T> operator/(const Array<T>& l, const T& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator / cannot be applied to Array of this type");
 
-    Array<T> result(elements);
+    Array<T> result(l);
 
-    for (T& val : result)
-    {
-        val /= r;
-    }
+    result /= r;
 
     return result;
 }
 
-#pragma endregion Arithmetic operators
+#pragma endregion
 
 
 #pragma region Arithmetic operators with assignment
@@ -161,9 +166,9 @@ template <typename T>
 inline Array<T>& Array<T>::operator+=(const Array<T>& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator += cannot be applied to Arrays of this type");
-    assert_message(elements.size() == r.size(), "Operator += cannot be applied to Arrays of different sizes");
+    assert_message(mSize == r.size(), "Operator += cannot be applied to Arrays of different sizes");
 
-    elements += r.elements;
+    mElements += r.mElements;
 
     return *this;
 }
@@ -173,9 +178,9 @@ template <typename T>
 inline Array<T>& Array<T>::operator-=(const Array<T>& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator -= cannot be applied to Arrays of this type");
-    assert_message(elements.size() == r.size(), "Operator -= cannot be applied to Arrays of different sizes");
+    assert_message(mSize == r.size(), "Operator -= cannot be applied to Arrays of different sizes");
 
-    elements -= r.elements;
+    mElements -= r.mElements;
 
     return *this;
 }
@@ -185,9 +190,9 @@ template <typename T>
 inline Array<T>& Array<T>::operator*=(const Array<T>& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator *= cannot be applied to Arrays of this type");
-    assert_message(elements.size() == r.size(), "Operator *= cannot be applied to Arrays of different sizes");
+    assert_message(mSize == r.size(), "Operator *= cannot be applied to Arrays of different sizes");
 
-    elements *= r.elements;
+    mElements *= r.mElements;
 
     return *this;
 }
@@ -197,9 +202,9 @@ template <typename T>
 inline Array<T>& Array<T>::operator/=(const Array<T>& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator /= cannot be applied to Arrays of this type");
-    assert_message(elements.size() == r.size(), "Operator /= cannot be applied to Arrays of different sizes");
+    assert_message(mSize == r.size(), "Operator /= cannot be applied to Arrays of different sizes");
 
-    elements /= r.elements;
+    mElements /= r.mElements;
 
     return *this;
 }
@@ -210,7 +215,7 @@ inline Array<T>& Array<T>::operator*=(const T& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator *= cannot be applied to Array of this type");
 
-    elements *= r;
+    mElements *= r;
 
     return *this;
 }
@@ -221,12 +226,12 @@ inline Array<T>& Array<T>::operator/=(const T& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator /= cannot be applied to Array of this type");
 
-    elements /= r;
+    mElements /= r;
 
     return *this;
 }
 
-#pragma endregion Arithmetic operators with assignment
+#pragma endregion
 
 
 #pragma region Swap methods
@@ -235,7 +240,8 @@ template <typename T>
 inline void Array<T>::swap(Array<T>& other)
 {
     static_assert(is_swappable_ext<T>::value, "Swap cannot be applied to Arrays of this type");
-    std::swap(elements, other.elements);
+    std::swap(mElements, other.mElements);
+    std::swap(mSize, other.mSize);
 }
 
 
@@ -245,7 +251,7 @@ inline void swap(Array<T>& first, Array<T>& second)
     first.swap(second);
 }
 
-#pragma endregion Swap methods
+#pragma endregion
 
 
 #pragma region Norms methods
@@ -253,14 +259,14 @@ inline void swap(Array<T>& first, Array<T>& second)
 template <typename T>
 T norm(const Array<T>& a, const Array<T>& b)
 {
-	static_assert(is_arithmetic_ext<T>::value, "Norm cannot be calculated for arrays of this type");
+	static_assert(std::is_arithmetic<T>::value, "Norm cannot be calculated for arrays of this type");
 	assert_message(a.size() == b.size(), "Norm cannot be calculated for arrays of different sizes");
 
 	T max = -std::numeric_limits<T>::min();
 	T absDif = 0.0;
 
-	const size_t size = a.size();
-	for (size_t i = 0; i < size; i++)
+	const arr_size_t size = a.size();
+	for (arr_size_t i = 0; i < size; i++)
 	{
 		absDif = std::abs(a(i) - b(i));
 
@@ -277,14 +283,14 @@ T norm(const Array<T>& a, const Array<T>& b)
 template <typename T>
 T norm(const Array<Vector2<T>>& a, const Array<Vector2<T>>& b)
 {
-	static_assert(is_arithmetic_ext<T>::value, "Norm cannot be calculated for arrays of this type");
+	static_assert(std::is_arithmetic<T>::value, "Norm cannot be calculated for arrays of this type");
 	assert_message(a.size() == b.size(), "Norm cannot be calculated for arrays of different sizes");
 
 	T max = -std::numeric_limits<T>::min();
 	T absDif = 0.0;
 
-	const size_t size = a.size();
-	for (size_t i = 0; i < size; i++)
+	const arr_size_t size = a.size();
+	for (arr_size_t i = 0; i < size; i++)
 	{
 		absDif = std::max(std::abs(a(i).x - b(i).x), std::abs(a(i).y - b(i).y));
 
@@ -297,4 +303,4 @@ T norm(const Array<Vector2<T>>& a, const Array<Vector2<T>>& b)
 	return max;
 }
 
-#pragma endregion Norms methods
+#pragma endregion

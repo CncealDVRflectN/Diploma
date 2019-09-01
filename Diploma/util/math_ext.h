@@ -17,7 +17,7 @@ inline T lerp(const T& start, const T& end, double param)
     return start + param * (end - start);
 }
 
-#pragma endregion Lerp
+#pragma endregion
 
 
 #pragma region Relaxation
@@ -50,7 +50,7 @@ inline void relaxation(Matrix<T>& nextApprox, const Matrix<T>& curApprox, double
     }
 }
 
-#pragma endregion Relaxation
+#pragma endregion
 
 
 #pragma region Double triangle area
@@ -62,7 +62,7 @@ inline double doubleTriangleArea(const Vector2<double>& vert1,
     return (vert1.x - vert2.x) * (vert3.y - vert2.y) - (vert3.x - vert2.x) * (vert1.y - vert2.y);
 }
 
-#pragma endregion Double triangle area
+#pragma endregion
 
 
 #pragma region Parametric point
@@ -106,6 +106,6 @@ T parametric_point(const Array<T>& points, double param)
     return calcLerp(linePoints[prevIndex], linePoints[nextIndex], localParam);
 }
 
-#pragma endregion Parametric point
+#pragma endregion
 
 #endif

@@ -6,12 +6,40 @@
 #include "Vector2.h"
 
 
+#if defined(__AVX2__) || \
+    defined(__AVX__) || \
+    defined(__SSE4_2__) || \
+    defined(__SSE4_1__) || \
+    defined(__SSE3__) || \
+    defined(__SSE2__) || \
+    defined(__SSE__) || \
+    defined(_M_IX86_FP) && _M_IX86_FP > 0
+    
+    #define _AUTO_VECTORIZATION_
+#endif
+
+
+#if defined(_AUTO_VECTORIZATION_) && !defined(_SIGNED_ARR_SIZE_)
+    #define _SIGNED_ARR_SIZE_
+#endif
+
+
+#ifdef _SIGNED_ARR_SIZE_
+    #if defined(_WIN64) && !defined(_AUTO_VECTORIZATION_)
+        typedef __int64 arr_size_t;
+    #else
+        typedef int     arr_size_t;
+    #endif
+#else
+    typedef size_t arr_size_t;
+#endif
+
 
 template <typename T>
 class Array
 {
 public:
-    Array(size_t size);
+    Array(arr_size_t size);
 
     Array(const std::valarray<T>& valArray);
 
@@ -20,12 +48,12 @@ public:
     Array(Array<T>&& rVal);
 
 
-    size_t size() const;
+    arr_size_t size() const;
 
 
-    const T& operator()(size_t index) const;
+    const T& operator()(arr_size_t index) const;
 
-    T& operator()(size_t index);
+    T& operator()(arr_size_t index);
 
 
     Array<T>& operator=(const Array<T>& r);
@@ -49,7 +77,8 @@ public:
     void swap(Array<T>& other);
 
 private:
-    std::valarray<T> elements;
+    std::valarray<T> mElements;
+    arr_size_t mSize;
 };
 
 

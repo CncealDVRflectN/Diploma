@@ -1,106 +1,160 @@
 #include "RightSweep.h"
-#include <cmath>
-#include <iostream>
 
 
-RightSweep::RightSweep(int size)
+#pragma region Constructors
+
+RightSweep::RightSweep(arr_size_t size, bool isPedantic) : mLowerDiagonal(size - 1), mMainDiagonal(size), 
+                                                           mUpperDiagonal(size - 1), mConstTerms(size),
+                                                           mAlpha(size - 1), mBeta(size), 
+                                                           mSize(size), mIsPedantic(isPedantic) {}
+
+#pragma endregion
+
+
+#pragma region Right sweep parameters
+
+arr_size_t RightSweep::size()
 {
-	lowerDiagonal = new double[size - 1];
-	mainDiagonal = new double[size];
-	upperDiagonal = new double[size - 1];
-	vect = new double[size];
+    return mSize;
+}
 
-	alpha = new double[size - 1];
-	beta = new double[size];
+#pragma endregion
 
-	this->size = size;
+
+#pragma region Access operators
+
+double& RightSweep::operator()(RightSweepAccess accessType, arr_size_t index)
+{
+    switch (accessType)
+    {
+        case RS_LOWER_DIAGONAL:
+            assert_message(index >= 0 && index < mLowerDiagonal.size(), "Right sweep lower diagonal index out of bounds");
+            return mLowerDiagonal(index);
+        case RS_MAIN_DIAGONAL:
+            assert_message(index >= 0 && index < mMainDiagonal.size(), "Right sweep main diagonal index out of bounds");
+            return mMainDiagonal(index);
+        case RS_UPPER_DIAGONAL:
+            assert_message(index >= 0 && index < mUpperDiagonal.size(), "Right sweep upper diagonal index out of bounds");
+            return mUpperDiagonal(index);
+        case RS_CONST_TERMS:
+            assert_message(index >= 0 && index < mConstTerms.size(), "Right sweep vector index out of bounds");
+            return mConstTerms(index);
+        default:
+            assert_message(false, "Right sweep unknown access type");
+            return mMainDiagonal(-1);
+    }
+}
+
+#pragma endregion
+
+
+#pragma region Public solve methods
+
+Array<double> RightSweep::solve()
+{
+    Array<double> solution(mSize);
+
+    this->solve(solution);
+
+    return solution;
 }
 
 
-RightSweep::~RightSweep()
+void RightSweep::solve(Array<double>& solutionDest)
 {
-	delete lowerDiagonal;
-	delete mainDiagonal;
-	delete upperDiagonal;
-	delete vect;
+    assert_message(mSize == solutionDest.size(), 
+                   "Right sweep solution cannot be calculated due to different size of solution destination");
 
-	delete alpha;
-	delete beta;
+    if (!isValid())
+    {
+        if (mIsPedantic)
+        {
+            assert_message(false, "Right sweep matrix is invalid!");
+        }
+        else
+        {
+            printf("! Warning: Right sweep matrix is invalid ! \n");
+        }
+    }
+
+    calcAlpha();
+    calcBeta();
+    reversal(solutionDest);
 }
 
-
-#pragma mark Public methods
-
-void RightSweep::calcRightSweep(double* solutionDest)
-{
-	if (!isValid())
-	{
-		std::cerr << "Warning: right sweep matrix is invalid!" << std::endl;
-	}
-
-	calcAlpha();
-	calcBeta();
-
-	calcSolution(solutionDest);
-}
+#pragma endregion
 
 
-#pragma mark Private methods
+#pragma region Private calculation methods
 
 void RightSweep::calcAlpha()
 {
-	int limit = size - 1;
+    arr_size_t limit = mSize - 1;
 
-	alpha[0] = -upperDiagonal[0] / mainDiagonal[0];
-	for (int i = 1; i < limit; i++)
-	{
-		alpha[i] = -upperDiagonal[i] / (mainDiagonal[i] + lowerDiagonal[i - 1] * alpha[i - 1]);
-	}
+    mAlpha(0) = -mUpperDiagonal(0) / mMainDiagonal(0);
+
+    #pragma loop(no_parallel)
+    #pragma loop(no_vector)
+    for (arr_size_t i = 1; i < limit; i++)
+    {
+        mAlpha(i) = -mUpperDiagonal(i) / (mMainDiagonal(i) + mLowerDiagonal(i - 1) * mAlpha(i - 1));
+    }
 }
 
 
 void RightSweep::calcBeta()
 {
-	beta[0] = vect[0] / mainDiagonal[0];
+    mBeta(0) = mConstTerms(0) / mMainDiagonal(0);
 
-	for (int i = 1; i < size; i++)
-	{
-		beta[i] = (vect[i] - lowerDiagonal[i - 1] * beta[i - 1]) /
-			(mainDiagonal[i] + lowerDiagonal[i - 1] * alpha[i - 1]);
-	}
+    #pragma loop(no_parallel)
+    #pragma loop(no_vector)
+    for (arr_size_t i = 1; i < mSize; i++)
+    {
+        mBeta(i) = (mConstTerms(i) - mLowerDiagonal(i - 1) * mBeta(i - 1)) /
+                   (mMainDiagonal(i) + mLowerDiagonal(i - 1) * mAlpha(i - 1));
+    }
 }
 
 
-void RightSweep::calcSolution(double* solutionDest)
+void RightSweep::reversal(Array<double>& solutionDest)
 {
-	solutionDest[size - 1] = beta[size - 1];
-	for (int i = size - 2; i >= 0; i--)
-	{
-		solutionDest[i] = alpha[i] * solutionDest[i + 1] + beta[i];
-	}
+    solutionDest(mSize - 1) = mBeta(mSize - 1);
+
+    #pragma loop(no_parallel)
+    #pragma loop(no_vector)
+    for (arr_size_t i = mSize - 2; i >= 0; i--)
+    {
+        solutionDest(i) = mAlpha(i) * solutionDest(i + 1) + mBeta(i);
+    }
 }
 
+#pragma endregion
+
+
+#pragma region Validation
 
 bool RightSweep::isValid()
 {
-	if (fabs(mainDiagonal[0]) < fabs(upperDiagonal[0]))
-	{
-		return false;
-	}
+    if (std::abs(mMainDiagonal(0)) < std::fabs(mUpperDiagonal(0)))
+    {
+        return false;
+    }
 
-	if (fabs(mainDiagonal[size - 1]) < fabs(lowerDiagonal[size - 2]))
-	{
-		return false;
-	}
+    if (std::abs(mMainDiagonal(mSize - 1)) < std::abs(mLowerDiagonal(mSize - 2)))
+    {
+        return false;
+    }
 
-	int lowerDiagSize = size - 1;
-	for (int i = 1; i < lowerDiagSize; i++)
-	{
-		if (fabs(mainDiagonal[i]) < (fabs(lowerDiagonal[i - 1]) + fabs(upperDiagonal[i])))
-		{
-			return false;
-		}
-	}
+    arr_size_t lowerDiagSize = mSize - 1;
+    for (int i = 1; i < lowerDiagSize; i++)
+    {
+        if (std::abs(mMainDiagonal(i)) < (std::abs(mLowerDiagonal(i - 1)) + std::abs(mUpperDiagonal(i))))
+        {
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
+
+#pragma endregion

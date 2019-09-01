@@ -36,7 +36,7 @@ struct is_arithmetic_ext<Matrix<T>>
     static const bool value = std::is_arithmetic<T>::value;
 };
 
-#pragma endregion Arithmetic type trait extension
+#pragma endregion
 
 
 #pragma region Swappable type trait extension
@@ -68,6 +68,6 @@ struct is_swappable_ext<Matrix<T>>
     static const bool value = std::is_swappable<T>::value;
 };
 
-#pragma endregion Swappable type trait extension
+#pragma endregion
 
 #endif

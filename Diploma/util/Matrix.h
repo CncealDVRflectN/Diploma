@@ -9,30 +9,27 @@ template <typename T>
 class Matrix
 {
 public:
-	Matrix(size_t rows, size_t columns);
+	Matrix(arr_size_t rowsNum, arr_size_t columnsNum);
 
     Matrix(const Matrix<T>& matrix);
 
     Matrix(Matrix<T>&& rVal);
 
 	
-    size_t rowsNum() const;
+    arr_size_t rowsNum() const;
 
-    size_t columnsNum() const;
+    arr_size_t columnsNum() const;
 
-    size_t elementsNum() const;
-
-
-    const T& operator()(size_t rawIndex) const;
-
-    T& operator()(size_t rawIndex);
-
-    const T& operator()(size_t row, size_t column) const;
-
-    T& operator()(size_t row, size_t column);
+    arr_size_t elementsNum() const;
 
 
-    const Array<T>& getRawElements() const;
+    const T& operator()(arr_size_t rawIndex) const;
+
+    T& operator()(arr_size_t rawIndex);
+
+    const T& operator()(arr_size_t row, arr_size_t column) const;
+
+    T& operator()(arr_size_t row, arr_size_t column);
 
 
     Matrix<T>& operator=(const Matrix<T>& r);
@@ -56,12 +53,12 @@ public:
     friend T norm<T>(const Matrix<T>& a, const Matrix<T>& b);
 
 private:
-	Array<T> elements;
-	const size_t rows;
-	const size_t columns;
+	Array<T> mElements;
+	arr_size_t mRowsNum;
+	arr_size_t mColumnsNum;
 
 
-    Matrix(const Array<T>& elements, size_t rows, size_t columns);
+    Matrix(const Array<T>& elements, arr_size_t rowsNum, arr_size_t columnsNum);
 };
 
 

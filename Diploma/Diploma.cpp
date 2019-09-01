@@ -374,6 +374,10 @@
 //	return 0;
 //}
 
+#include <random>
+#include <chrono>
+
+#include "RightSweep.h"
 #include "Vector2.h"
 #include "Array.h"
 #include "Matrix.h"
@@ -409,7 +413,7 @@ int main()
     mtr1(2, 0) = 4.0;
 
 	double a = 2.0;
-
+    
 	Vector2<double> tmp = vec + sec;
 	Vector2<double> res = a * tmp;
 
@@ -428,6 +432,39 @@ int main()
 
     printf("-----------LERP-----------\n");
     printf("lrp: %lf | %lf \n", lrp.x, lrp.y);
+
+    RightSweep rightSweep(4);
+
+    rightSweep(RS_LOWER_DIAGONAL, 0) = 1.0;
+    rightSweep(RS_LOWER_DIAGONAL, 1) = 1.0;
+    rightSweep(RS_LOWER_DIAGONAL, 2) = 1.0;
+
+    rightSweep(RS_MAIN_DIAGONAL, 0) = 2.0;
+    rightSweep(RS_MAIN_DIAGONAL, 1) = 10.0;
+    rightSweep(RS_MAIN_DIAGONAL, 2) = -5.0;
+    rightSweep(RS_MAIN_DIAGONAL, 3) = 4.0;
+
+    rightSweep(RS_UPPER_DIAGONAL, 0) = 1.0;
+    rightSweep(RS_UPPER_DIAGONAL, 1) = -5.0;
+    rightSweep(RS_UPPER_DIAGONAL, 2) = 2.0;
+
+    rightSweep(RS_CONST_TERMS, 0) = -5.0;
+    rightSweep(RS_CONST_TERMS, 1) = -18.0;
+    rightSweep(RS_CONST_TERMS, 2) = -40.0;
+    rightSweep(RS_CONST_TERMS, 3) = -27.0;
+
+    Array<double> solution(4);
+
+    rightSweep.solve(solution);
+
+    printf("\n\n");
+
+    for (arr_size_t i = 0; i < 4; i++)
+    {
+        printf("%lf ", solution(i));
+    }
+
+    printf("\n\n");
 
 	return 1;
 }

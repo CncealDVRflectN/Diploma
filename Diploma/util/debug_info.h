@@ -4,6 +4,8 @@
 #include <iostream>
 
 
+#pragma region Assert message
+
 #ifdef NDEBUG
 
     #define assert_message(condition, message) do { } while(false)
@@ -23,5 +25,6 @@
 
 #endif
 
+#pragma endregion
 
 #endif

@@ -5,17 +5,23 @@
 #pragma region Constructors
 
 template <typename T>
-Vector2<T>::Vector2() : x(0), y(0) {}
+Vector2<T>::Vector2() : x(0), y(0) 
+{
+    static_assert(std::is_arithmetic<T>::value, "Vector2 cannot be constructed for non-arithmetic types");
+}
 
 
 template <typename T>
-Vector2<T>::Vector2(const T& xVal, const T& yVal) : x(xVal), y(yVal) {}
+Vector2<T>::Vector2(const T& xVal, const T& yVal) : x(xVal), y(yVal) 
+{
+    static_assert(std::is_arithmetic<T>::value, "Vector2 cannot be constructed for non-arithmetic types");
+}
 
 
 template <typename T>
 Vector2<T>::Vector2(const Vector2<T>& vect) : x(vect.x), y(vect.y) {}
 
-#pragma endregion Constructors
+#pragma endregion
 
 
 #pragma region Mathematical methods
@@ -27,7 +33,7 @@ inline double Vector2<T>::length() const
 	return sqrt(x * x + y * y);
 }
 
-#pragma endregion Mathematical methods
+#pragma endregion
 
 
 #pragma region Assignment operators
@@ -39,7 +45,7 @@ inline Vector2<T>& Vector2<T>::operator=(const Vector2<T>& r)
     y = r.y;
 }
 
-#pragma endregion Assignment operators
+#pragma endregion
 
 
 #pragma region Arithmetic operators
@@ -99,7 +105,7 @@ inline Vector2<T> operator/(const Vector2<T>& l, const T& r)
 	return Vector2<T>(l.x / r, l.y / r);
 }
 
-#pragma endregion Arithmetic operators
+#pragma endregion
 
 
 #pragma region Arithmetic operators with assignment
@@ -175,7 +181,7 @@ inline Vector2<T>& Vector2<T>::operator/=(const T& r)
 	return *this;
 }
 
-#pragma endregion Arithmetic operators with assignment
+#pragma endregion
 
 
 #pragma region Swap methods
@@ -195,4 +201,4 @@ inline void swap(Vector2<T>& first, Vector2<T>& second)
     first.swap(second);
 }
 
-#pragma endregion Swap methods
+#pragma endregion
