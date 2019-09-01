@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_MAGNETICFIELD_H
 #define DIPLOMA_MAGNETICFIELD_H
 
-#include "../util/util.h"
+//#include "../util/util.h"
 
 
 typedef struct magnetic_params_t

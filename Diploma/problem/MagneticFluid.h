@@ -1,8 +1,8 @@
 #ifndef DIPLOMA_MAGNETICFLUID_H
 #define DIPLOMA_MAGNETICFLUID_H
 
-#include "../util/util.h"
-#include "../util/RightSweep.h"
+//#include "../util/util.h"
+//#include "../util/RightSweep.h"
 #include "MagneticField.h"
 
 
