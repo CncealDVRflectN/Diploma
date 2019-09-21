@@ -1,9 +1,9 @@
-#include "MagneticField.h"
+//#include "MagneticField.h"
 
-#include <iostream>
-#include <vector>
-
-
+//#include <iostream>
+//#include <vector>
+//
+//
 //static const Indices2 TABLE_OFFSETS[8] = { {-1,  1}, 
 //										   { 0,  1}, 
 //										   { 1,  0}, 

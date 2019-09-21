@@ -374,14 +374,15 @@
 //	return 0;
 //}
 
-#include <random>
-#include <chrono>
 
+#include "PlotSTGrid.h"
+#include "SimpleTriangleGrid.h"
 #include "RightSweep.h"
 #include "Vector2.h"
 #include "Array.h"
 #include "Matrix.h"
 #include "math_ext.h"
+
 
 int main()
 {
@@ -465,6 +466,40 @@ int main()
     }
 
     printf("\n\n");
+
+
+    Array<Vector2<double>> surface(100);
+    double param = 0.0;
+
+    for (arr_size_t i = 0; i < 100; i++)
+    {
+        param = 1.0 - i / 99.0;
+        
+        surface(i) = Vector2<double>(cos(0.5 * 3.1415 * param), sin(0.5 * 3.1415 * param));
+    }
+
+    STGridParams gridParams;
+    gridParams.surfaceSplitsNum = 10;
+    gridParams.internalSplitsNum = 10;
+    gridParams.infSplitsNum = 10;
+    gridParams.infMultiplier = 4.0;
+
+    SimpleTriangleGrid grid(gridParams);
+    grid.generate(surface);
+
+    PlotSTGridParams params;
+    params.windowWidth = 1280;
+    params.windowHeight = 720;
+    params.title = "Вычислительная сетка";
+    params.labelX = "r";
+    params.labelY = "z";
+    params.isEqualAxis = true;
+    params.volumeNonDimMul = 1.0;
+
+    PlotSTGrid plot(params);
+    plot.plot(grid);
+
+    system("pause");
 
 	return 1;
 }

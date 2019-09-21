@@ -42,6 +42,8 @@ public:
 
     Vector2(const Vector2<T>& vect);
 
+    Vector2(std::initializer_list<T> initList);
+
 
 	double length() const;
 

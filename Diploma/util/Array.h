@@ -15,17 +15,17 @@
     defined(__SSE__) || \
     defined(_M_IX86_FP) && _M_IX86_FP > 0
     
-    #define _AUTO_VECTORIZATION_
+    #define AUTO_VECTORIZATION
 #endif
 
 
-#if defined(_AUTO_VECTORIZATION_) && !defined(_SIGNED_ARR_SIZE_)
-    #define _SIGNED_ARR_SIZE_
+#if defined(AUTO_VECTORIZATION) && !defined(SIGNED_ARR_SIZE)
+    #define SIGNED_ARR_SIZE
 #endif
 
 
-#ifdef _SIGNED_ARR_SIZE_
-    #if defined(_WIN64) && !defined(_AUTO_VECTORIZATION_)
+#ifdef SIGNED_ARR_SIZE
+    #if defined(_WIN64) && !defined(AUTO_VECTORIZATION)
         typedef __int64 arr_size_t;
     #else
         typedef int     arr_size_t;
@@ -42,6 +42,8 @@ public:
     Array(arr_size_t size);
 
     Array(const std::valarray<T>& valArray);
+
+    Array(std::initializer_list<T> initList);
 
     Array(const Array<T>& array);
 
@@ -71,10 +73,25 @@ public:
 
     Array<T>& operator*=(const T& r);
 
+    template <typename K>
+    Array<T>& operator*=(const K& r);
+
     Array<T>& operator/=(const T& r);
+
+    template <typename K>
+    Array<T>& operator/=(const K& r);
 
 
     void swap(Array<T>& other);
+
+
+    auto begin();
+
+    const auto begin() const;
+
+    auto end();
+
+    const auto end() const;
 
 private:
     std::valarray<T> mElements;
@@ -94,14 +111,21 @@ Array<T> operator*(const Array<T>& l, const Array<T>& r);
 template <typename T>
 Array<T> operator/(const Array<T>& l, const Array<T>& r);
 
-template <typename T>
-Array<T> operator*(const Array<T>& l, const T& r);
+template <typename T, typename K>
+Array<T> operator*(const Array<T>& l, const K& r);
+
+template <typename T, typename K>
+Array<T> operator*(const K& l, const Array<T>& r);
+
+template <typename T, typename K>
+Array<T> operator/(const Array<T>& l, const K& r);
+
 
 template <typename T>
-Array<T> operator*(const T& l, const Array<T>& r);
+auto begin(Array<T>& arr);
 
 template <typename T>
-Array<T> operator/(const Array<T>& l, const T& r);
+auto end(Array<T>& arr);
 
 
 template <typename T>

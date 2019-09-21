@@ -4,20 +4,20 @@
 //#include "../util/util.h"
 
 
-typedef struct magnetic_params_t
-{
-	int surfaceSplitsNum;
-	int infSplitsNum;
-	int internalSplitsNum;
-	int iterationsNumMax;
-	double chi;
-	double accuracy;
-	double relaxParamMin;
-} MagneticParams;
-
-
-class MagneticField
-{
+//typedef struct magnetic_params_t
+//{
+//	int surfaceSplitsNum;
+//	int infSplitsNum;
+//	int internalSplitsNum;
+//	int iterationsNumMax;
+//	double chi;
+//	double accuracy;
+//	double relaxParamMin;
+//} MagneticParams;
+//
+//
+//class MagneticField
+//{
 //public:
 //	MagneticField(const MagneticParams& params);
 //
@@ -94,6 +94,6 @@ class MagneticField
 //	bool isIndicesValid(const Indices2& indices);
 //
 //	void calcDerivatives();
-};
+//};
 
 #endif

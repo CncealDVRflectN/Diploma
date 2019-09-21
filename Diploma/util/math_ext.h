@@ -72,7 +72,7 @@ T parametric_point(const Array<T>& points, double param)
 {
     static_assert(is_arithmetic_ext<T>::value, "Parametric point cannot be calculated for Array of this type");
 
-    const size_t pointsNum = points.size();
+    const arr_size_t pointsNum = points.size();
     const int maxIndex = pointsNum - 1;
 
     int prevIndex = (int)(maxIndex * param);
@@ -96,14 +96,14 @@ T parametric_point(const Array<T>& points, double param)
 
     if (prevIndex == nextIndex)
     {
-        return linePoints[prevIndex];
+        return points(prevIndex);
     }
 
     double prevParam = (double)prevIndex / maxIndex;
     double nextParam = (double)nextIndex / maxIndex;
     double localParam = (param - prevParam) / (nextParam - prevParam);
 
-    return calcLerp(linePoints[prevIndex], linePoints[nextIndex], localParam);
+    return lerp(points(prevIndex), points(nextIndex), localParam);
 }
 
 #pragma endregion

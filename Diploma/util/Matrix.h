@@ -41,9 +41,11 @@ public:
 
     Matrix<T>& operator-=(const Matrix<T>& r);
 
-    Matrix<T>& operator*=(const T& r);
+    template <typename K>
+    Matrix<T>& operator*=(const K& r);
 
-    Matrix<T>& operator/=(const T& r);
+    template <typename K>
+    Matrix<T>& operator/=(const K& r);
 
 
     void swap(Matrix<T>& other);
@@ -68,14 +70,14 @@ Matrix<T> operator+(const Matrix<T>&l, const Matrix<T>& r);
 template <typename T>
 Matrix<T> operator-(const Matrix<T>& l, const Matrix<T>& r);
 
-template <typename T>
-Matrix<T> operator*(const Matrix<T>& l, const T& r);
+template <typename T, typename K>
+Matrix<T> operator*(const Matrix<T>& l, const K& r);
 
-template <typename T>
-Matrix<T> operator*(const T& l, const Matrix<T>& r);
+template <typename T, typename K>
+Matrix<T> operator*(const K& l, const Matrix<T>& r);
 
-template <typename T>
-Matrix<T> operator/(const Matrix<T>& l, const T& r);
+template <typename T, typename K>
+Matrix<T> operator/(const Matrix<T>& l, const K& r);
 
 
 template <typename T>

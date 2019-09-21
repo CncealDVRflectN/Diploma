@@ -2,17 +2,17 @@
 #define DIPLOMA_RIGHTSWEEP_H
 
 // if link problem occured with RightSweep, try to include it before Array
-// or define _SIGNED_ARR_SIZE_ before first Array inclusion
+// or define SIGNED_ARR_SIZE before first Array inclusion
 
-#ifndef _SIGNED_ARR_SIZE_
-    #define _SIGNED_ARR_SIZE_   // for reversal step
+#ifndef SIGNED_ARR_SIZE
+    #define SIGNED_ARR_SIZE   // for reversal step
 #endif
 
 
 #include "Array.h"
 
 
-enum RightSweepAccess
+enum RightSweepAccessType
 {
     RS_LOWER_DIAGONAL,
     RS_MAIN_DIAGONAL,
@@ -30,7 +30,7 @@ public:
     arr_size_t size();
 
 
-    double& operator()(RightSweepAccess accessType, arr_size_t index);
+    double& operator()(RightSweepAccessType accessType, arr_size_t index);
 
 
     Array<double> solve();
@@ -57,7 +57,7 @@ private:
 
 	void reversal(Array<double>& solutionDest);
 
-	bool isValid();
+	bool isValid() const;
 };
 
 

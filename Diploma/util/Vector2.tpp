@@ -1,4 +1,5 @@
 #include "Vector2.h"
+#include "debug_info.h"
 
 
 
@@ -20,6 +21,17 @@ Vector2<T>::Vector2(const T& xVal, const T& yVal) : x(xVal), y(yVal)
 
 template <typename T>
 Vector2<T>::Vector2(const Vector2<T>& vect) : x(vect.x), y(vect.y) {}
+
+
+template <typename T>
+Vector2<T>::Vector2(std::initializer_list<T> initList)
+{
+    static_assert(std::is_arithmetic<T>::value, "Vector2 cannot be constructed for non-arithmetic types");
+    assert_message(initList.size() == 2, "Initializer list size must be 2");
+
+    x = *(initList.begin());
+    y = *(initList.begin() + 1);
+}
 
 #pragma endregion
 
@@ -43,6 +55,8 @@ inline Vector2<T>& Vector2<T>::operator=(const Vector2<T>& r)
 {
     x = r.x;
     y = r.y;
+
+    return *this;
 }
 
 #pragma endregion

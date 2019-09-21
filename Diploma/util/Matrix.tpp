@@ -13,7 +13,7 @@ Matrix<T>::Matrix(arr_size_t rowsNum, arr_size_t columnsNum) : mElements(rowsNum
 template <typename T>
 Matrix<T>::Matrix(const Matrix<T>& matrix) : mElements(matrix.mElements), 
                                              mRowsNum(matrix.mRowsNum), 
-                                             mColumnsNum(matrix.mcolumnsNum) {}
+                                             mColumnsNum(matrix.mColumnsNum) {}
 
 
 template <typename T>
@@ -135,7 +135,11 @@ inline Matrix<T> operator+(const Matrix<T>& l, const Matrix<T>& r)
     static_assert(is_arithmetic_ext<T>::value, "Operator + cannot be applied to Matrices of this type");
     assert_message(l.mRowsNum == r.mRowsNum && l.mColumnsNum == r.mColumnsNum, 
                    "Operator + cannot be applied to Matrices of different dimentions");
-    return Matrix(l.mElements + r.mElements);
+
+    Matrix<T> result(l);
+    result += r;
+
+    return result;
 }
 
 
@@ -145,31 +149,44 @@ inline Matrix<T> operator-(const Matrix<T>& l, const Matrix<T>& r)
     static_assert(is_arithmetic_ext<T>::value, "Operator - cannot be applied to Matrices of this type");
     assert_message(l.mRowsNum == r.mRowsNum && l.mColumnsNum == r.mColumnsNum, 
                    "Operator - cannot be applied to Matrices of different dimentions");
-    return Matrix(l.mElements - r.mElements);
+
+    Matrix<T> result(l);
+    result -= r;
+
+    return result;
 }
 
 
-template <typename T>
-inline Matrix<T> operator*(const Matrix<T>& l, const T& r)
+template <typename T, typename K>
+inline Matrix<T> operator*(const Matrix<T>& l, const K& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator * cannot be applied to Matrices of this type");
-    return Matrix(l.mElements * r);
+    static_assert(is_arithmetic_ext<K>::value, "Operator * cannot be applied to value of this type");
+
+    Matrix<T> result(l);
+    result *= r;
+
+    return result;
 }
 
 
-template <typename T>
-inline Matrix<T> operator*(const T& l, const Matrix<T>& r)
+template <typename T, typename K>
+inline Matrix<T> operator*(const K& l, const Matrix<T>& r)
 {
-    static_assert(is_arithmetic_ext<T>::value, "Operator * cannot be applied to Matrices of this type");
     return r * l;
 }
 
 
-template <typename T>
-inline Matrix<T> operator/(const Matrix<T>& l, const T& r)
+template <typename T, typename K>
+inline Matrix<T> operator/(const Matrix<T>& l, const K& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator / cannot be applied to Matrices of this type");
-    return Matrix(l.mElements / r);
+    static_assert(is_arithmetic_ext<K>::value, "Operator / cannot be applied to value of this type");
+
+    Matrix<T> result(l);
+    result /= r;
+
+    return result;
 }
 
 #pragma endregion
@@ -204,9 +221,11 @@ inline Matrix<T>& Matrix<T>::operator-=(const Matrix<T>& r)
 
 
 template <typename T>
-inline Matrix<T>& Matrix<T>::operator*=(const T& r)
+template <typename K>
+inline Matrix<T>& Matrix<T>::operator*=(const K& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator *= cannot be applied to Matrices of this type");
+    static_assert(is_arithmetic_ext<K>::value, "Operator *= cannot be applied to value of this type");
 
     mElements *= r;
 
@@ -215,9 +234,11 @@ inline Matrix<T>& Matrix<T>::operator*=(const T& r)
 
 
 template <typename T>
-inline Matrix<T>& Matrix<T>::operator/=(const T& r)
+template <typename K>
+inline Matrix<T>& Matrix<T>::operator/=(const K& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator /= cannot be applied to Matrices of this type");
+    static_assert(is_arithmetic_ext<K>::value, "Operator /= cannot be applied to value of this type");
 
     mElements /= r;
 

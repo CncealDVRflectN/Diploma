@@ -20,6 +20,10 @@ Array<T>::Array(const std::valarray<T>& valArray) : mElements(valArray), mSize(v
 
 
 template <typename T>
+Array<T>::Array(std::initializer_list<T> initList) : mElements(initList), mSize(initList.size()) {}
+
+
+template <typename T>
 Array<T>::Array(const Array& array) : mElements(array.mElements), mSize(array.mSize) {}
 
 
@@ -124,10 +128,11 @@ inline Array<T> operator/(const Array<T>& l, const Array<T>& r)
 }
 
 
-template <typename T>
-inline Array<T> operator*(const Array<T>& l, const T& r)
+template <typename T, typename K>
+inline Array<T> operator*(const Array<T>& l, const K& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator * cannot be applied to Array of this type");
+    static_assert(is_arithmetic_ext<K>::value, "Operator * cannot be applied to value of this type")
 
     Array<T> result(l);
 
@@ -137,18 +142,18 @@ inline Array<T> operator*(const Array<T>& l, const T& r)
 }
 
 
-template <typename T>
-inline Array<T> operator*(const T& l, const Array<T>& r)
+template <typename T, typename K>
+inline Array<T> operator*(const K& l, const Array<T>& r)
 {
-    static_assert(is_arithmetic_ext<T>::value, "Operator * cannot be applied to Array of this type");
     return r * l;
 }
 
 
-template <typename T>
-inline Array<T> operator/(const Array<T>& l, const T& r)
+template <typename T, typename K>
+inline Array<T> operator/(const Array<T>& l, const K& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator / cannot be applied to Array of this type");
+    static_assert(is_arithmetic_ext<T>::value, "Operator / cannot be applied to value of this type");
 
     Array<T> result(l);
 
@@ -213,9 +218,25 @@ inline Array<T>& Array<T>::operator/=(const Array<T>& r)
 template <typename T>
 inline Array<T>& Array<T>::operator*=(const T& r)
 {
-    static_assert(is_arithmetic_ext<T>::value, "Operator *= cannot be applied to Array of this type");
+    static_assert(is_arithmetic_ext<T>::value, "Operator *= cannot be applied to Arrays of this type");
 
     mElements *= r;
+
+    return *this;
+}
+
+
+template <typename T>
+template <typename K>
+inline Array<T>& Array<T>::operator*=(const K& r)
+{
+    static_assert(is_arithmetic_ext<T>::value, "Operator *= cannot be applied to Array of this type");
+    static_assert(is_arithmetic_ext<K>::value, "Operator *= cannot be applied to value of this type");
+
+    for (arr_size_t i = 0; i < mSize; i++)
+    {
+        mElements[i] *= r;
+    }
 
     return *this;
 }
@@ -229,6 +250,68 @@ inline Array<T>& Array<T>::operator/=(const T& r)
     mElements /= r;
 
     return *this;
+}
+
+
+template <typename T>
+template <typename K>
+inline Array<T>& Array<T>::operator/=(const K& r)
+{
+    static_assert(is_arithmetic_ext<T>::value, "Operator /= cannot be applied to Array of this type");
+    static_assert(is_arithmetic_ext<K>::value, "Operator /= cannot be applied to value of this type");
+
+    for (arr_size_t i = 0; i < mSize; i++)
+    {
+        mElements[i] /= r;
+    }
+
+    return *this;
+}
+
+#pragma endregion
+
+
+#pragma region Iterator methods
+
+template <typename T>
+inline auto Array<T>::begin()
+{
+    return std::begin(mElements);
+}
+
+
+template <typename T>
+inline const auto Array<T>::begin() const
+{
+    return std::begin(mElements);
+}
+
+
+template <typename T>
+inline auto begin(Array<T>& arr)
+{
+    return arr.begin();
+}
+
+
+template <typename T>
+inline auto Array<T>::end()
+{
+    return std::end(mElements);
+}
+
+
+template <typename T>
+inline const auto Array<T>::end() const
+{
+    return std::end(mElements);
+}
+
+
+template <typename T>
+inline auto end(Array<T>& arr)
+{
+    return arr.end();
 }
 
 #pragma endregion

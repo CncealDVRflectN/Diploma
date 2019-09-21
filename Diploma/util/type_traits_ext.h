@@ -1,6 +1,21 @@
 #ifndef DIPLOMA_TYPE_TRAITS_EXT_H
 #define DIPLOMA_TYPE_TRAITS_EXT_H
 
+
+#pragma region Forward declaration
+
+template <typename T>
+class Vector2;
+
+template <typename T>
+class Array;
+
+template <typename T>
+class Matrix;
+
+#pragma endregion
+
+
 #include <type_traits>
 #include "Vector2.h"
 #include "Array.h"

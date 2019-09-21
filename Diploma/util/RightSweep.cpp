@@ -23,7 +23,7 @@ arr_size_t RightSweep::size()
 
 #pragma region Access operators
 
-double& RightSweep::operator()(RightSweepAccess accessType, arr_size_t index)
+double& RightSweep::operator()(RightSweepAccessType accessType, arr_size_t index)
 {
     switch (accessType)
     {
@@ -133,7 +133,7 @@ void RightSweep::reversal(Array<double>& solutionDest)
 
 #pragma region Validation
 
-bool RightSweep::isValid()
+bool RightSweep::isValid() const
 {
     if (std::abs(mMainDiagonal(0)) < std::fabs(mUpperDiagonal(0)))
     {
