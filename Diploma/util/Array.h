@@ -2,6 +2,7 @@
 #define DIPLOMA_ARRAY_H
 
 #include <valarray>
+#include <vector>
 
 #include "Vector2.h"
 
@@ -42,6 +43,8 @@ public:
     Array(arr_size_t size);
 
     Array(const std::valarray<T>& valArray);
+
+    Array(const std::vector<T>& vector);
 
     Array(std::initializer_list<T> initList);
 

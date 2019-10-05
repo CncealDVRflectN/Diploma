@@ -1,505 +1,119 @@
 ﻿#include <iostream>
-//#include "util/util.h"
-//#include "problem/Solution.h"
-//#include "plot/PlotLines.h"
-//#include "plot/PlotGrid.h"
-//#include "plot/PlotIsolines.h"
+#include "ProgramOptsHandler.h"
 
 
-//enum OptsIds
-//{
-//	WINDOW_WIDTH_OPT = 1,
-//	WINDOW_HEIGHT_OPT,
-//	W_PARAM_INITIAL_OPT,
-//	W_PARAM_TARGET_OPT,
-//	CHI_INITIAL_OPT,
-//	CHI_TARGET_OPT,
-//	RELAXATION_PARAM_MIN_OPT,
-//	ACCURACY_OPT,
-//	SPLITS_NUM_OPT,
-//	ITERATIONS_MAX_NUM_OPT,
-//	W_RESULTS_NUM_OPT,
-//	CHI_RESULTS_NUM_OPT,
-//	FIELD_SURFACE_SPLITS_NUM_OPT,
-//	FIELD_INTERNAL_SPLITS_NUM_OPT,
-//	FIELD_INFINITY_SPLITS_NUM_OPT,
-//	FIELD_ITERATIONS_MAX_NUM_OPT,
-//	FIELD_ACCURACY_OPT,
-//	FIELD_RELAXATION_PARAM_MIN_OPT,
-//	EQUAL_AXIS_OPT,
-//	NONDIM_OPT
-//};
-//
-//
-//static const LongOpt LONG_OPTS[] = {
-//	{"window-width",			WINDOW_WIDTH_OPT},
-//	{"window-height",			WINDOW_HEIGHT_OPT},
-//	{"w-param-initial",			W_PARAM_INITIAL_OPT},
-//	{"w-param-target",			W_PARAM_TARGET_OPT},
-//	{"chi-param-initial",		CHI_INITIAL_OPT},
-//	{"chi-param-target",		CHI_TARGET_OPT},
-//	{"relaxation-param-min",	RELAXATION_PARAM_MIN_OPT},
-//	{"accuracy",				ACCURACY_OPT},
-//	{"splits-num",				SPLITS_NUM_OPT},
-//	{"iterations-max-num",		ITERATIONS_MAX_NUM_OPT},
-//	{"w-results-num",			W_RESULTS_NUM_OPT},
-//	{"chi-results-num",			CHI_RESULTS_NUM_OPT},
-//	{"field-surf-splits-num",	FIELD_SURFACE_SPLITS_NUM_OPT},
-//	{"field-int-splits-num",	FIELD_INTERNAL_SPLITS_NUM_OPT},
-//	{"field-inf-splits-num",	FIELD_INFINITY_SPLITS_NUM_OPT},
-//	{"field-iter-max-num",		FIELD_ITERATIONS_MAX_NUM_OPT},
-//	{"field-accuracy",			FIELD_ACCURACY_OPT},
-//	{"field-relax-param-min",	FIELD_RELAXATION_PARAM_MIN_OPT},
-//	{"equal-axis",				EQUAL_AXIS_OPT},
-//	{"nondim",					NONDIM_OPT},
-//	{nullptr,					0}
-//};
-//
-//
-//typedef struct program_params_t
-//{
-//	double wInitial;
-//	double wTarget;
-//	double relaxationParamMin;
-//	double fieldRelaxParamMin;
-//	double accuracy;
-//	double fieldAccuracy;
-//	double chiInitial;
-//	double chiTarget;
-//	int windowWidth;
-//	int windowHeight;
-//	int splitsNum;
-//	int fieldSurfaceSplitsNum;
-//	int fieldInternalSplitsNum;
-//	int fieldInfinitySplitsNum;
-//	int iterationsMaxNum;
-//	int fieldIterationsMaxNum;
-//	int resultsNumW;
-//	int resultsNumChi;
-//	bool isEqualAxis;
-//	bool isNonDim;
-//} ProgramsParams;
-//
-//
-//void handleOpts(int optId, char* optPtr, ProgramsParams& programParams)
-//{
-//	switch (optId)
-//	{
-//		case WINDOW_WIDTH_OPT:
-//			programParams.windowWidth = std::atoi(optPtr);
-//			break;
-//		case WINDOW_HEIGHT_OPT:
-//			programParams.windowHeight = std::atoi(optPtr);
-//			break;
-//		case W_PARAM_INITIAL_OPT:
-//			programParams.wInitial = std::atof(optPtr);
-//			break;
-//		case W_PARAM_TARGET_OPT:
-//			programParams.wTarget = std::atof(optPtr);
-//			break;
-//		case CHI_INITIAL_OPT:
-//			programParams.chiInitial = std::atof(optPtr);
-//			break;
-//		case CHI_TARGET_OPT:
-//			programParams.chiTarget = std::atof(optPtr);
-//			break;
-//		case RELAXATION_PARAM_MIN_OPT:
-//			programParams.relaxationParamMin = std::atof(optPtr);
-//			break;
-//		case ACCURACY_OPT:
-//			programParams.accuracy = std::atof(optPtr);
-//			break;
-//		case SPLITS_NUM_OPT:
-//			programParams.splitsNum = std::atoi(optPtr);
-//			break;
-//		case ITERATIONS_MAX_NUM_OPT:
-//			programParams.iterationsMaxNum = std::atoi(optPtr);
-//			break;
-//		case W_RESULTS_NUM_OPT:
-//			programParams.resultsNumW = std::atoi(optPtr);
-//			break;
-//		case CHI_RESULTS_NUM_OPT:
-//			programParams.resultsNumChi = std::atoi(optPtr);
-//			break;
-//		case FIELD_SURFACE_SPLITS_NUM_OPT:
-//			programParams.fieldSurfaceSplitsNum = std::atoi(optPtr);
-//			break;
-//		case FIELD_INTERNAL_SPLITS_NUM_OPT:
-//			programParams.fieldInternalSplitsNum = std::atoi(optPtr);
-//			break;
-//		case FIELD_INFINITY_SPLITS_NUM_OPT:
-//			programParams.fieldInfinitySplitsNum = std::atoi(optPtr);
-//			break;
-//		case FIELD_ACCURACY_OPT:
-//			programParams.fieldAccuracy = std::atof(optPtr);
-//			break;
-//		case FIELD_ITERATIONS_MAX_NUM_OPT:
-//			programParams.fieldIterationsMaxNum = std::atoi(optPtr);
-//			break;
-//		case FIELD_RELAXATION_PARAM_MIN_OPT:
-//			programParams.fieldRelaxParamMin = std::atof(optPtr);
-//			break;
-//		case EQUAL_AXIS_OPT:
-//			programParams.isEqualAxis = true;
-//			break;
-//		case NONDIM_OPT:
-//			programParams.isNonDim = true;
-//			break;
-//		default:
-//			break;
-//	}
-//}
-//
-//
-//void parseArgs(int argc, char** argv, ProgramsParams& programParams)
-//{
-//	int optId = 0;
-//	char* optPtr = nullptr;
-//
-//	for (int i = 0; i < argc; i++)
-//	{
-//		optPtr = getOpt(argv[i], nullptr, LONG_OPTS, optId);
-//
-//		if (optPtr != nullptr)
-//		{
-//			handleOpts(optId, optPtr, programParams);
-//		}
-//		else
-//		{
-//			printf("Unknown parameter: %s \n", argv[i]);
-//		}
-//	}
-//}
-//
-//
-//void addResultLinePlot(MagneticFluid& fluid, PlotLines& plot, bool isNonDim)
-//{
-//	int pointsNum = fluid.getPointsNum();
-//	char buffer[256];
-//	double volumeNondimMul = (isNonDim) ? fluid.calcVolumeNondimMul() : 1.0;
-//	const Vector2* result = fluid.getLastValidResult();
-//	PlotLine plotLine;
-//
-//	for (int i = 0; i < pointsNum; i++)
-//	{
-//		plotLine.points.push_back({ volumeNondimMul * result[i].r, volumeNondimMul * result[i].z });
-//	}
-//
-//	sprintf(buffer, "W = %.2lf", fluid.getCurrentW());
-//
-//	plotLine.title = buffer;
-//
-//	plot.addLine(plotLine);
-//}
-//
-//
-//void addHeightCoefsLinePlot(const std::vector<Vector2>& heightCoefs, PlotLines& plot, double chi)
-//{
-//	char buffer[256];
-//	PlotLine plotLine;
-//
-//	plotLine.points.assign(heightCoefs.begin(), heightCoefs.end());
-//
-//	sprintf(buffer, "chi = %.2lf", chi);
-//
-//	plotLine.title = buffer;
-//
-//	plot.addLine(plotLine);
-//}
-//
-//
-//double calcHeightCoef(MagneticFluid& fluid)
-//{
-//	int pointsNum = fluid.getPointsNum();
-//	const Vector2* result = fluid.getLastValidResult();
-//
-//	return result[0].z / result[pointsNum - 1].r;
-//}
-//
-//
-//int main(int argc, char** argv)
-//{
-//	ProgramsParams programParams;
-//	char buffer[256];
-//
-//	programParams.windowWidth = 1280;
-//	programParams.windowHeight = 720;
-//	programParams.isEqualAxis = false;
-//	programParams.isNonDim = false;
-//
-//	parseArgs(argc, argv, programParams);
-//
-//	if (programParams.resultsNumW == 0 || programParams.resultsNumChi == 0)
-//	{
-//		printf("resultsNum = 0\n");
-//		return -1;
-//	}
-//
-//	double curChi = 0.0;
-//	double stepChi = 0.0;
-//
-//	if (programParams.resultsNumChi == 1)
-//	{
-//		stepChi = programParams.chiTarget - programParams.chiInitial;
-//		curChi = programParams.chiTarget;
-//	}
-//	else
-//	{
-//		stepChi = (programParams.chiTarget - programParams.chiInitial) / (programParams.resultsNumChi - 1);
-//		curChi = programParams.chiInitial;
-//	}
-//
-//	ProblemParams problemParams;
-//	problemParams.accuracy = programParams.accuracy;
-//	problemParams.chi = curChi;
-//	problemParams.fieldAccuracy = programParams.fieldAccuracy;
-//	problemParams.fieldInfinitySplitsNum = programParams.fieldInfinitySplitsNum;
-//	problemParams.fieldInternalSplitsNum = programParams.fieldInternalSplitsNum;
-//	problemParams.fieldIterationsMaxNum = programParams.fieldIterationsMaxNum;
-//	problemParams.fieldRelaxParamMin = programParams.fieldRelaxParamMin;
-//	problemParams.fieldSurfaceSplitsNum = programParams.fieldSurfaceSplitsNum;
-//	problemParams.iterationsMaxNum = programParams.iterationsMaxNum;
-//	problemParams.relaxationParamMin = programParams.relaxationParamMin;
-//	problemParams.splitsNum = programParams.splitsNum;
-//	problemParams.wInitial = programParams.wInitial;
-//	problemParams.wTarget = programParams.wTarget;
-//	problemParams.resultsNum = programParams.resultsNumW;
-//
-//	Solution solution(problemParams);
-//
-//	PlotLinesParams heightCoefsPlotParams;
-//	heightCoefsPlotParams.windowWidth = programParams.windowWidth;
-//	heightCoefsPlotParams.windowHeight = programParams.windowHeight;
-//	heightCoefsPlotParams.title = "Коэффициент вытягивания";
-//	heightCoefsPlotParams.labelX = "W";
-//	heightCoefsPlotParams.labelY = "k";
-//	heightCoefsPlotParams.isEqualAxis = false;
-//
-//	PlotLines heightCoefsPlot(heightCoefsPlotParams);
-//
-//	for (int i = 0; i < programParams.resultsNumChi; i++)
-//	{
-//		ProblemResultCode resultCode = SUCCESS;
-//
-//		solution.setChi(curChi);
-//
-//		sprintf(buffer, "Осесимметричная задача (chi = %.1lf)", curChi);
-//
-//		PlotLinesParams resultsPlotParams;
-//		resultsPlotParams.windowWidth = programParams.windowWidth;
-//		resultsPlotParams.windowHeight = programParams.windowHeight;
-//		resultsPlotParams.title = buffer;
-//		resultsPlotParams.labelX = "r";
-//		resultsPlotParams.labelY = "z";
-//		resultsPlotParams.isEqualAxis = programParams.isEqualAxis;
-//
-//		PlotLines resultsPlot(resultsPlotParams);
-//
-//		std::vector<Vector2> heightCoefs;
-//
-//		solution.calcInitials();
-//		//solution.calcResult(0.0);
-//		addResultLinePlot(*(solution.getMagneticFluid()), resultsPlot, programParams.isNonDim);
-//		heightCoefs.push_back({ solution.getCurrentW(), calcHeightCoef(*(solution.getMagneticFluid())) });
-//
-//		/*while (resultCode == SUCCESS)
-//		{
-//			resultCode = solution.calcNextResult();
-//
-//			if (resultCode == SUCCESS || resultCode == TARGET_REACHED)
-//			{
-//				addResultLinePlot(*solution.getMagneticFluid(), resultsPlot, programParams.isNonDim);
-//
-//				heightCoefs.push_back({ solution.getCurrentW(), calcHeightCoef(*solution.getMagneticFluid()) });
-//			}
-//		}
-//
-//		addHeightCoefsLinePlot(heightCoefs, heightCoefsPlot, curChi);
-//
-//		if (resultCode != TARGET_REACHED)
-//		{
-//			printf("Target W parameter can't be reached\n");
-//
-//			system("pause");
-//
-//			return -1;
-//		}*/
-//
-//		PlotGridParams plotGridParams;
-//		plotGridParams.windowWidth = programParams.windowWidth;
-//		plotGridParams.windowHeight = programParams.windowHeight;
-//		plotGridParams.title = "Вычислительная сетка";
-//		plotGridParams.labelX = "r";
-//		plotGridParams.labelY = "z";
-//		plotGridParams.isEqualAxis = true;
-//		plotGridParams.volumeNonDimMul = (programParams.isNonDim) ? (*solution.getMagneticFluid()).calcVolumeNondimMul() : 1.0;
-//
-//		PlotGrid plotGrid(plotGridParams);
-//		plotGrid.setGrid(solution.getLastValidFieldGrid(), solution.getGridLinesNum(),
-//			solution.getGridColumnsNum(), solution.getGridSurfaceColumnIndex());
-//
-//		PlotIsolinesParams plotIsolinesParams;
-//		plotIsolinesParams.windowWidth = programParams.windowWidth;
-//		plotIsolinesParams.windowHeight = programParams.windowHeight;
-//		plotIsolinesParams.title = "Изолинии потенциала магнитного поля";
-//		plotIsolinesParams.labelX = "r";
-//		plotIsolinesParams.labelY = "z";
-//		plotIsolinesParams.isEqualAxis = true;
-//		plotIsolinesParams.volumeNonDimMul = (programParams.isNonDim) ? (*solution.getMagneticFluid()).calcVolumeNondimMul() : 1.0;
-//
-//		PlotIsolines plotIsolines(plotIsolinesParams);
-//		plotIsolines.setGridAndValues(solution.getLastValidFieldGrid(), solution.getLastValidFieldPotential(),
-//			solution.getGridLinesNum(), solution.getGridColumnsNum(),
-//			solution.getGridSurfaceColumnIndex());
-//
-//		resultsPlot.plot();
-//		plotGrid.plot();
-//		plotIsolines.plot();
-//
-//		system("pause");
-//
-//		resultsPlot.close();
-//		plotGrid.close();
-//		plotIsolines.close();
-//
-//		curChi += stepChi;
-//	}
-//
-//	heightCoefsPlot.plot();
-//
-//	system("pause");
-//
-//	heightCoefsPlot.close();
-//
-//	return 0;
-//}
-
-
-#include "PlotSTGrid.h"
-#include "SimpleTriangleGrid.h"
-#include "RightSweep.h"
-#include "Vector2.h"
-#include "Array.h"
-#include "Matrix.h"
-#include "math_ext.h"
-
-
-int main()
+int main(int argc, char** argv)
 {
-	Vector2<double> vec(2.0, 4.0);
-	Vector2<double> sec(3.0, 2.0);
+    ProgramOptsHandler optsHandler;
+    optsHandler.parseOpts(argc, argv);
 
-	Array<Vector2<double>> arr1(10);
-	Array<Vector2<double>> arr2(10);
+    ProgramParams programParams = optsHandler.parameters();
 
-	arr1(0).x = 5.0;
-	arr1(5).y = 3.6;
-	arr1(7).x = -3.5;
-	arr1(4).y = -2.6;
+	char buffer[256];
 
-	Array<double> ar1(10);
-	Array<double> ar2(10);
-    
-	ar1(2) = 3.5;
-	ar1(5) = -4.0;
-	ar1(8) = 4.6;
-	ar1(3) = -5.0;
+	if (programParams.resultsNumW == 0 || programParams.resultsNumChi == 0)
+	{
+		printf("Number of results is zero\n");
+		return -1;
+	}
 
-    Matrix<double> mtr1(3, 3);
-    Matrix<double> mtr2(3, 3);
+	double curChi = programParams.chiInitial;
+	double stepChi = 0.0;
 
-    mtr1(0, 0) = 5.0;
-    mtr1(1, 1) = -4.5;
-    mtr1(2, 2) = 3.0;
-    mtr1(2, 0) = 4.0;
+	if (programParams.resultsNumChi == 1)
+	{
+		stepChi = 0.0;
+		curChi = programParams.chiTarget;
+	}
+	else
+	{
+		stepChi = (programParams.chiTarget - programParams.chiInitial) / (programParams.resultsNumChi - 1);
+		curChi = programParams.chiInitial;
+	}
 
-	double a = 2.0;
-    
-	Vector2<double> tmp = vec + sec;
-	Vector2<double> res = a * tmp;
+	Solution solution(optsHandler.problemParameters());
 
-	printf("%lf | %lf \n", res.x, res.y);
-	printf("arr: %lf \n", norm(arr1, arr2));
-	printf("ar: %lf \n", norm(ar1, ar2));
-    printf("mtr: %lf \n", norm(mtr1, mtr2));
+	PlotLinesParams heightCoefsPlotParams = optsHandler.heightCoefsPlotParameters();
+	PlotLines heightCoefsPlot(heightCoefsPlotParams);
 
-    res.swap(tmp);
+    std::vector<PlotLine> heightCoefsLines;
 
-    printf("-----------SWAP-----------\n");
-    printf("tmp: %lf | %lf \n", tmp.x, tmp.y);
-    printf("res: %lf | %lf \n", res.x, res.y);
+	for (int i = 0; i < programParams.resultsNumChi; i++)
+	{
+        std::vector<Vector2<double>> heightCoefs;
+        std::vector<PlotLine> surfaceLines;
+		ResultCode resultCode = SUCCESS;
+        double volumeNonDimMul = 1.0;
 
-    Vector2<double> lrp = lerp (res, tmp, 0.5);
+		sprintf(buffer, "Осесимметричная задача (chi = %.1lf)", curChi);
 
-    printf("-----------LERP-----------\n");
-    printf("lrp: %lf | %lf \n", lrp.x, lrp.y);
+		PlotLinesParams resultsPlotParams = optsHandler.surfacePlotParametes(buffer);
+		PlotLines resultsPlot(resultsPlotParams);
 
-    RightSweep rightSweep(4);
+        solution.resetIterationsCounters();
+        solution.setChi(curChi);
+		solution.calcInitials();
+		resultCode = solution.calcResult(0.0);
 
-    rightSweep(RS_LOWER_DIAGONAL, 0) = 1.0;
-    rightSweep(RS_LOWER_DIAGONAL, 1) = 1.0;
-    rightSweep(RS_LOWER_DIAGONAL, 2) = 1.0;
+        if ((resultCode == SUCCESS && programParams.resultsNumW > 1) || resultCode == TARGET_REACHED)
+        {
+            sprintf(buffer, "W = %.2lf", solution.currentW());
 
-    rightSweep(RS_MAIN_DIAGONAL, 0) = 2.0;
-    rightSweep(RS_MAIN_DIAGONAL, 1) = 10.0;
-    rightSweep(RS_MAIN_DIAGONAL, 2) = -5.0;
-    rightSweep(RS_MAIN_DIAGONAL, 3) = 4.0;
+            volumeNonDimMul = (programParams.isNonDim) ? solution.volumeNonDimMul() : 1.0;
+            surfaceLines.push_back({ buffer, volumeNonDimMul * solution.fluidSurface() });
+            heightCoefs.push_back({ solution.currentW(), solution.heightCoef() });
+        }
 
-    rightSweep(RS_UPPER_DIAGONAL, 0) = 1.0;
-    rightSweep(RS_UPPER_DIAGONAL, 1) = -5.0;
-    rightSweep(RS_UPPER_DIAGONAL, 2) = 2.0;
+		while (resultCode == SUCCESS)
+		{
+			resultCode = solution.calcNextResult();
 
-    rightSweep(RS_CONST_TERMS, 0) = -5.0;
-    rightSweep(RS_CONST_TERMS, 1) = -18.0;
-    rightSweep(RS_CONST_TERMS, 2) = -40.0;
-    rightSweep(RS_CONST_TERMS, 3) = -27.0;
+			if (resultCode == SUCCESS || resultCode == TARGET_REACHED)
+			{
+                sprintf(buffer, "W = %.2lf", solution.currentW());
 
-    Array<double> solution(4);
+                volumeNonDimMul = (programParams.isNonDim) ? solution.volumeNonDimMul() : 1.0;
+                surfaceLines.push_back({ buffer, volumeNonDimMul * solution.fluidSurface() });
+				heightCoefs.push_back({ solution.currentW(), solution.heightCoef() });
+			}
+		}
 
-    rightSweep.solve(solution);
+        sprintf(buffer, "chi = %.2lf", curChi);
+        heightCoefsLines.push_back({ buffer, heightCoefs });
 
-    printf("\n\n");
+		if (resultCode != TARGET_REACHED)
+		{
+			printf("Target W parameter can't be reached\n");
 
-    for (arr_size_t i = 0; i < 4; i++)
-    {
-        printf("%lf ", solution(i));
-    }
+			system("pause");
 
-    printf("\n\n");
+			return -1;
+		}
 
+        PlotSTGridParams plotGridParams = optsHandler.gridPlotParameters();
+		PlotSTGrid plotGrid(plotGridParams);
 
-    Array<Vector2<double>> surface(100);
-    double param = 0.0;
+        PlotIsolinesParams plotIsolinesParams = optsHandler.isolinesPlotParameters();
+		PlotIsolines plotIsolines(plotIsolinesParams);
 
-    for (arr_size_t i = 0; i < 100; i++)
-    {
-        param = 1.0 - i / 99.0;
-        
-        surface(i) = Vector2<double>(cos(0.5 * 3.1415 * param), sin(0.5 * 3.1415 * param));
-    }
+		resultsPlot.plot(surfaceLines);
+		plotGrid.plot(solution.field().grid(), volumeNonDimMul);
+		plotIsolines.plot(solution.field().grid(), solution.field().lastValidResult(), volumeNonDimMul);
 
-    STGridParams gridParams;
-    gridParams.surfaceSplitsNum = 10;
-    gridParams.internalSplitsNum = 10;
-    gridParams.infSplitsNum = 10;
-    gridParams.infMultiplier = 4.0;
+		system("pause");
 
-    SimpleTriangleGrid grid(gridParams);
-    grid.generate(surface);
+		resultsPlot.close();
+		plotGrid.close();
+		plotIsolines.close();
 
-    PlotSTGridParams params;
-    params.windowWidth = 1280;
-    params.windowHeight = 720;
-    params.title = "Вычислительная сетка";
-    params.labelX = "r";
-    params.labelY = "z";
-    params.isEqualAxis = true;
-    params.volumeNonDimMul = 1.0;
+		curChi += stepChi;
+	}
 
-    PlotSTGrid plot(params);
-    plot.plot(grid);
+	heightCoefsPlot.plot(heightCoefsLines);
 
-    system("pause");
+	system("pause");
 
-	return 1;
+	heightCoefsPlot.close();
+
+	return 0;
 }

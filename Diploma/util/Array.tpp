@@ -20,6 +20,10 @@ Array<T>::Array(const std::valarray<T>& valArray) : mElements(valArray), mSize(v
 
 
 template <typename T>
+Array<T>::Array(const std::vector<T>& vector) : mElements(vector.data(), vector.size()), mSize(vector.size()) {}
+
+
+template <typename T>
 Array<T>::Array(std::initializer_list<T> initList) : mElements(initList), mSize(initList.size()) {}
 
 
@@ -74,6 +78,8 @@ template <typename T>
 inline Array<T>& Array<T>::operator=(const Array<T>& r)
 {
     mElements = r.mElements;
+    mSize = r.mSize;
+    return *this;
 }
 
 
@@ -81,6 +87,9 @@ template <typename T>
 inline Array<T>& Array<T>::operator=(Array<T>&& rVal)
 {
     mElements = std::move(rVal.mElements);
+    mSize = rVal.mSize;
+    rVal.mSize = 0;
+    return *this;
 }
 
 #pragma endregion
@@ -132,7 +141,7 @@ template <typename T, typename K>
 inline Array<T> operator*(const Array<T>& l, const K& r)
 {
     static_assert(is_arithmetic_ext<T>::value, "Operator * cannot be applied to Array of this type");
-    static_assert(is_arithmetic_ext<K>::value, "Operator * cannot be applied to value of this type")
+    static_assert(is_arithmetic_ext<K>::value, "Operator * cannot be applied to value of this type");
 
     Array<T> result(l);
 

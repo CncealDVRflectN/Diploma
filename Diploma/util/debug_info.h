@@ -17,7 +17,7 @@
     { \
         if (!(condition)) \
         { \
-            std::cerr << "Assetion '" #condition "', failed in " << __FILE__ \
+            std::cerr << "Assertion '" #condition "', failed in " << __FILE__ \
                       << " line " << __LINE__ << ": " << message << std::endl; \
             std::terminate(); \
         } \

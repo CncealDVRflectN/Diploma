@@ -11,7 +11,7 @@ PlotIsolines::PlotIsolines(const PlotIsolinesParams& params) : mParams(params), 
 
 #pragma region Member methods
 
-void PlotIsolines::plot(const SimpleTriangleGrid& grid, const Matrix<double>& values)
+void PlotIsolines::plot(const SimpleTriangleGrid& grid, const Matrix<double>& values, double volumeNonDimMul)
 {
     const arr_size_t rowsNum = grid.rowsNum();
     const arr_size_t columnsNum = grid.columnsNum();
@@ -20,7 +20,7 @@ void PlotIsolines::plot(const SimpleTriangleGrid& grid, const Matrix<double>& va
                    "Cannot plot isolines due to different dimensions of grid and values matrices");
     assert_message(rowsNum != 0 && columnsNum != 0, "Cannot plot isoline due to empty data");
 
-    const Matrix<Vector2<double>> points = mParams.volumeNonDimMul * grid.rawPoints();
+    const Matrix<Vector2<double>> points = volumeNonDimMul * grid.rawPoints();
 
     mPipe.write("set term wxt enhanced size %d, %d\n", mParams.windowWidth, mParams.windowHeight);
     mPipe.write("set title \"%s\"\n", mParams.title.c_str());

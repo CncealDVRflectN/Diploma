@@ -19,7 +19,6 @@ typedef struct plot_st_grid_params_t
 	std::string labelY;
 	int windowWidth;
 	int windowHeight;
-	double volumeNonDimMul;
 	bool isEqualAxis;
 } PlotSTGridParams;
 
@@ -30,7 +29,7 @@ public:
 	PlotSTGrid(const PlotSTGridParams& params);
 
 
-	void plot(const SimpleTriangleGrid& grid);
+	void plot(const SimpleTriangleGrid& grid, double volumeNonDimMul);
 
 	void close();
 

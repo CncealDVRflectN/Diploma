@@ -42,6 +42,8 @@ public:
 
     Vector2<double> operator()(arr_size_t row, arr_size_t columns) const;
 
+    Vector2<double> operator()(const Vector2<arr_size_t>& indices) const;
+
 
     void generate(const Array<double>& surfacePointsR, const Array<double>& surfacePointsZ);
 

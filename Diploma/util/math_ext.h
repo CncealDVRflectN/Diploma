@@ -1,6 +1,9 @@
 #ifndef DIPLOMA_MATH_EXT_H
 #define DIPLOMA_MATH_EXT_H
 
+#define _USE_MATH_DEFINES
+
+#include <math.h>
 #include "Vector2.h"
 #include "Array.h"
 #include "Matrix.h"
@@ -55,9 +58,9 @@ inline void relaxation(Matrix<T>& nextApprox, const Matrix<T>& curApprox, double
 
 #pragma region Double triangle area
 
-inline double doubleTriangleArea(const Vector2<double>& vert1, 
-                                 const Vector2<double>& vert2, 
-                                 const Vector2<double>& vert3)
+inline double double_triangle_area(const Vector2<double>& vert1, 
+                                   const Vector2<double>& vert2, 
+                                   const Vector2<double>& vert3)
 {
     return (vert1.x - vert2.x) * (vert3.y - vert2.y) - (vert3.x - vert2.x) * (vert1.y - vert2.y);
 }

@@ -47,47 +47,53 @@ public:
 
 	double length() const;
 
+    template <typename K>
+    Vector2<T>& operator=(const Vector2<K>& r);
 
-    Vector2<T>& operator=(const Vector2<T>& r);
 
+    template <typename K>
+	Vector2<T>& operator+=(const Vector2<K>& r);
 
-	Vector2<T>& operator+=(const Vector2<T>& r);
+    template <typename K>
+	Vector2<T>& operator-=(const Vector2<K>& r);
 
-	Vector2<T>& operator-=(const Vector2<T>& r);
+    template <typename K>
+	Vector2<T>& operator*=(const Vector2<K>& r);
 
-	Vector2<T>& operator*=(const Vector2<T>& r);
+    template <typename K>
+	Vector2<T>& operator/=(const Vector2<K>& r);
 
-	Vector2<T>& operator/=(const Vector2<T>& r);
+    template <typename K>
+	Vector2<T>& operator*=(const K& r);
 
-	Vector2<T>& operator*=(const T& r);
-
-	Vector2<T>& operator/=(const T& r);
+    template <typename K>
+	Vector2<T>& operator/=(const K& r);
 
 
     void swap(Vector2<T>& other);
 };
 
 
-template <typename T>
-Vector2<T> operator+(const Vector2<T>& l, const Vector2<T>& r);
+template <typename T, typename K>
+Vector2<T> operator+(const Vector2<T>& l, const Vector2<K>& r);
 
-template <typename T>
-Vector2<T> operator-(const Vector2<T>& l, const Vector2<T>& r);
+template <typename T, typename K>
+Vector2<T> operator-(const Vector2<T>& l, const Vector2<K>& r);
 
-template <typename T>
-Vector2<T> operator*(const Vector2<T>& l, const Vector2<T>& r);
+template <typename T, typename K>
+Vector2<T> operator*(const Vector2<T>& l, const Vector2<K>& r);
 
-template <typename T>
-Vector2<T> operator/(const Vector2<T>& l, const Vector2<T>& r);
+template <typename T, typename K>
+Vector2<T> operator/(const Vector2<T>& l, const Vector2<K>& r);
 
-template <typename T>
-Vector2<T> operator*(const Vector2<T>&l, const T& r);
+template <typename T, typename K>
+Vector2<T> operator*(const Vector2<T>&l, const K& r);
 
-template <typename T>
-Vector2<T> operator*(const T& l, const Vector2<T>& r);
+template <typename T, typename K>
+Vector2<T> operator*(const K& l, const Vector2<T>& r);
 
-template <typename T>
-Vector2<T> operator/(const Vector2<T>& l, const T& r);
+template <typename T, typename K>
+Vector2<T> operator/(const Vector2<T>& l, const K& r);
 
 
 template <typename T>

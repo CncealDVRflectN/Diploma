@@ -31,6 +31,10 @@ public:
 
     T& operator()(arr_size_t row, arr_size_t column);
 
+    const T& operator()(const Vector2<arr_size_t>& indices) const;
+
+    T& operator()(const Vector2<arr_size_t>& indices);
+
 
     Matrix<T>& operator=(const Matrix<T>& r);
 

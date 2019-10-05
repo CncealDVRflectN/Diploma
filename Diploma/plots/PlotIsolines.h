@@ -22,7 +22,6 @@ typedef struct plot_isolines_params_t
 	std::string labelY;
 	int windowWidth;
 	int windowHeight;
-	double volumeNonDimMul;
 	bool isEqualAxis;
 } PlotIsolinesParams;
 
@@ -32,7 +31,7 @@ class PlotIsolines
 public:
 	PlotIsolines(const PlotIsolinesParams& params);
 
-	void plot(const SimpleTriangleGrid& grid, const Matrix<double>& values);
+	void plot(const SimpleTriangleGrid& grid, const Matrix<double>& values, double volumeNonDimMul);
 
 	void close();
 

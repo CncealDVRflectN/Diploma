@@ -99,6 +99,24 @@ inline T& Matrix<T>::operator()(arr_size_t row, arr_size_t column)
     return mElements(row * mColumnsNum + column);
 }
 
+
+template <typename T>
+inline const T& Matrix<T>::operator()(const Vector2<arr_size_t>& indices) const
+{
+    assert_message(indices.i >= 0 && indices.i < mRowsNum, "Matrix row index is out of bounds");
+    assert_message(indices.j >= 0 && indices.j < mColumnsNum, "Matrix row index is out of bounds");
+    return mElements(indices.i * mColumnsNum + indices.j);
+}
+
+
+template <typename T>
+inline T& Matrix<T>::operator()(const Vector2<arr_size_t>& indices)
+{
+    assert_message(indices.i >= 0 && indices.i < mRowsNum, "Matrix row index is out of bounds");
+    assert_message(indices.j >= 0 && indices.j < mColumnsNum, "Matrix row index is out of bounds");
+    return mElements(indices.i * mColumnsNum + indices.j);
+}
+
 #pragma endregion
 
 
@@ -110,6 +128,8 @@ inline Matrix<T>& Matrix<T>::operator=(const Matrix<T>& r)
     mElements = r.mElements;
     mRowsNum = r.mRowsNum;
     mColumnsNum = r.mColumnsNum;
+
+    return *this;
 }
 
 
@@ -122,6 +142,8 @@ inline Matrix<T>& Matrix<T>::operator=(Matrix<T>&& rVal)
 
     rVal.mRowsNum = 0;
     rVal.mColumnsNum = 0;
+
+    return *this;
 }
 
 #pragma endregion

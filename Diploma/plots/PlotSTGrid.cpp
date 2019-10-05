@@ -11,9 +11,9 @@ PlotSTGrid::PlotSTGrid(const PlotSTGridParams& params) : mParams(params), mPipe(
 
 #pragma region Member methods
 
-void PlotSTGrid::plot(const SimpleTriangleGrid& grid)
+void PlotSTGrid::plot(const SimpleTriangleGrid& grid, double volumeNonDimMul)
 {
-    const Matrix<Vector2<double>> points = mParams.volumeNonDimMul * grid.rawPoints();
+    const Matrix<Vector2<double>> points = volumeNonDimMul * grid.rawPoints();
 
     mPipe.write("set term wxt size %d, %d enhanced\n", mParams.windowWidth, mParams.windowHeight);
     mPipe.write("set title \"%s\"\n", mParams.title.c_str());

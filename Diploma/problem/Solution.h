@@ -8,81 +8,71 @@
 
 typedef struct problem_params_t
 {
-	double wInitial;
+    STGridParams gridParams;
 	double wTarget;
+    double relaxationParamInitial;
 	double relaxationParamMin;
+    double fieldRelaxParamInitial;
 	double fieldRelaxParamMin;
 	double accuracy;
 	double fieldAccuracy;
 	double chi;
 	int splitsNum;
-	int fieldSurfaceSplitsNum;
-	int fieldInternalSplitsNum;
-	int fieldInfinitySplitsNum;
 	int iterationsMaxNum;
 	int fieldIterationsMaxNum;
 	int resultsNum;
+    bool isRightSweepPedantic;
 } ProblemParams;
 
 
 class Solution
 {
-//public:
-//	Solution(const ProblemParams& params);
-//
-//	~Solution();
-//
-//	MagneticFluid* getMagneticFluid();
-//
-//	MagneticField* getMagneticField();
-//
-//	Vector2* getLastValidSurface();
-//
-//	Vector2** getLastValidFieldGrid();
-//
-//	double** getLastValidFieldPotential();
-//
-//	double getCurrentW();
-//
-//	int getSurfacePointsNum();
-//
-//	int getGridLinesNum();
-//
-//	int getGridColumnsNum();
-//
-//	int getGridSurfaceColumnIndex();
-//
-//	void setChi(double chi);
-//
-//	void calcInitials();
-//
-//	ProblemResultCode calcResult(double w);
-//
-//	ProblemResultCode calcNextResult();
-//
-//private:
-//	MagneticField* field;
-//	MagneticFluid* fluid;
-//
-//	ProblemParams params;
-//
-//	Vector2* lastValidFluidSurface;
-//	Vector2** lastValidFieldGrid;
-//	double** lastValidFieldPotential;
-//
-//	double curW;
-//	double stepW;
-//
-//
-//	FluidParams getFluidParams(const ProblemParams& problemParams);
-//
-//	MagneticParams getFieldParams(const ProblemParams& problemParams);
-//
-//	void updateLastValidResults();
-//
-//	void calcDerivatives();
-//
-//	bool isAccuracyReached();
+public:
+	Solution(const ProblemParams& params);
+
+	
+    void setChi(double chi);
+
+    double currentW() const;
+
+    double volumeNonDimMul() const;
+
+    double heightCoef() const;
+
+    const Array<Vector2<double>>& fluidSurface() const;
+
+    const MagneticFluid& fluid() const;
+
+    const MagneticField& field() const;
+
+    void resetIterationsCounters();
+
+
+	void calcInitials();
+
+	ResultCode calcResult(double w);
+
+	ResultCode calcNextResult();
+
+private:
+    ProblemParams mParams;
+
+	MagneticField mField;
+	MagneticFluid mFluid;
+
+    SimpleTriangleGrid mLastValidFieldGrid;
+	Array<Vector2<double>> mLastValidFluidSurface;
+	Matrix<double> mLastValidFieldPotential;
+
+	double mCurW;
+	double mStepW;
+
+
+	void updateLastValidResults();
+
+	Array<Vector2<double>> calcDerivatives() const;
+
+	bool isAccuracyReached() const;
 };
 
 

@@ -64,6 +64,12 @@ Vector2<double> SimpleTriangleGrid::operator()(arr_size_t row, arr_size_t column
     return mPoints(row, column);
 }
 
+
+Vector2<double> SimpleTriangleGrid::operator()(const Vector2<arr_size_t>& indices) const
+{
+    return mPoints(indices);
+}
+
 #pragma endregion
 
 

@@ -51,7 +51,8 @@ inline double Vector2<T>::length() const
 #pragma region Assignment operators
 
 template <typename T>
-inline Vector2<T>& Vector2<T>::operator=(const Vector2<T>& r)
+template <typename K>
+inline Vector2<T>& Vector2<T>::operator=(const Vector2<K>& r)
 {
     x = r.x;
     y = r.y;
@@ -64,58 +65,65 @@ inline Vector2<T>& Vector2<T>::operator=(const Vector2<T>& r)
 
 #pragma region Arithmetic operators
 
-template <typename T>
-inline Vector2<T> operator+(const Vector2<T>& l, const Vector2<T>& r)
+template <typename T, typename K>
+inline Vector2<T> operator+(const Vector2<T>& l, const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator + cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator + cannot be calculated for Vector2 of this type");
 	return Vector2<T>(l.x + r.x, l.y + r.y);
 }
 
 
-template <typename T>
-inline Vector2<T> operator-(const Vector2<T>& l, const Vector2<T>& r)
+template <typename T, typename K>
+inline Vector2<T> operator-(const Vector2<T>& l, const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator - cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator - cannot be calculated for Vector2 of this type");
 	return Vector2<T>(l.x - r.x, l.y - r.y);
 }
 
 
-template <typename T>
-inline Vector2<T> operator*(const Vector2<T>& l, const Vector2<T>& r)
+template <typename T, typename K>
+inline Vector2<T> operator*(const Vector2<T>& l, const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator * cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator * cannot be calculated for Vector2 of this type");
 	return Vector2<T>(l.x * r.x, l.y * r.y);
 }
 
 
-template <typename T>
-inline Vector2<T> operator/(const Vector2<T>& l, const Vector2<T>& r)
+template <typename T, typename K>
+inline Vector2<T> operator/(const Vector2<T>& l, const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator / cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator / cannot be calculated for Vector2 of this type");
 	return Vector2<T>(l.x / r.x, l.y / r.y);
 }
 
 
-template <typename T>
-inline Vector2<T> operator*(const Vector2<T>& l, const T& r)
+template <typename T, typename K>
+inline Vector2<T> operator*(const Vector2<T>& l, const K& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator * cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator * cannot be calculated for Vector2 of this type");
 	return Vector2<T>(l.x * r, l.y * r);
 }
 
 
-template <typename T>
-inline Vector2<T> operator*(const T& l, const Vector2<T>& r)
+template <typename T, typename K>
+inline Vector2<T> operator*(const K& l, const Vector2<T>& r)
 {
-    static_assert(std::is_arithmetic<T>::value, "Operator * cannot be calculated for Vector2 of this type");
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator * cannot be calculated for Vector2 of this type");
     return r * l;
 }
 
 
-template <typename T>
-inline Vector2<T> operator/(const Vector2<T>& l, const T& r)
+template <typename T, typename K>
+inline Vector2<T> operator/(const Vector2<T>& l, const K& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator / cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator / cannot be calculated for Vector2 of this type");
 	return Vector2<T>(l.x / r, l.y / r);
 }
 
@@ -125,9 +133,11 @@ inline Vector2<T> operator/(const Vector2<T>& l, const T& r)
 #pragma region Arithmetic operators with assignment
 
 template <typename T>
-inline Vector2<T>& Vector2<T>::operator+=(const Vector2<T>& r)
+template <typename K>
+inline Vector2<T>& Vector2<T>::operator+=(const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator += cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator += cannot be calculated for Vector2 of this type");
 
 	x += r.x;
 	y += r.y;
@@ -137,9 +147,11 @@ inline Vector2<T>& Vector2<T>::operator+=(const Vector2<T>& r)
 
 
 template <typename T>
-inline Vector2<T>& Vector2<T>::operator-=(const Vector2<T>& r)
+template <typename K>
+inline Vector2<T>& Vector2<T>::operator-=(const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator -= cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator -= cannot be calculated for Vector2 of this type");
 
 	x -= r.x;
 	y -= r.y;
@@ -149,9 +161,11 @@ inline Vector2<T>& Vector2<T>::operator-=(const Vector2<T>& r)
 
 
 template <typename T>
-inline Vector2<T>& Vector2<T>::operator*=(const Vector2<T>& r)
+template <typename K>
+inline Vector2<T>& Vector2<T>::operator*=(const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator *= cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator *= cannot be calculated for Vector2 of this type");
 
 	x *= r.x;
 	y *= r.y;
@@ -161,9 +175,11 @@ inline Vector2<T>& Vector2<T>::operator*=(const Vector2<T>& r)
 
 
 template <typename T>
-inline Vector2<T>& Vector2<T>::operator/=(const Vector2<T>& r)
+template <typename K>
+inline Vector2<T>& Vector2<T>::operator/=(const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator /= cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator /= cannot be calculated for Vector2 of this type");
 
 	x /= r.x;
 	y /= r.y;
@@ -173,9 +189,11 @@ inline Vector2<T>& Vector2<T>::operator/=(const Vector2<T>& r)
 
 
 template <typename T>
-inline Vector2<T>& Vector2<T>::operator*=(const T& r)
+template <typename K>
+inline Vector2<T>& Vector2<T>::operator*=(const K& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator *= cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator *= cannot be calculated for Vector2 of this type");
 
 	x *= r;
 	y *= r;
@@ -185,9 +203,11 @@ inline Vector2<T>& Vector2<T>::operator*=(const T& r)
 
 
 template <typename T>
-inline Vector2<T>& Vector2<T>::operator/=(const T& r)
+template <typename K>
+inline Vector2<T>& Vector2<T>::operator/=(const K& r)
 {
-	static_assert(std::is_arithmetic<T>::value, "Operator /= cannot be calculated for Vector2 of this type");
+	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+                  "Operator /= cannot be calculated for Vector2 of this type");
 
 	x /= r;
 	y /= r;
