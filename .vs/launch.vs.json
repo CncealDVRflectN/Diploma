@@ -19,7 +19,7 @@
         "--splits-num=100",
         "--iterations-max-num=10000",
         "--w-results-num=3",
-        "--chi-results-num=3",
+        "--chi-results-num=1",
         "--field-surf-splits-num=8",
         "--field-int-splits-num=8",
         "--field-inf-splits-num=10",

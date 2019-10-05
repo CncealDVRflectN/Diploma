@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_MAGNETICFLUID_H
 #define DIPLOMA_MAGNETICFLUID_H
 
+#include <functional>
+#include <unordered_map>
 #include "RightSweep.h"
 #include "MagneticField.h"
 #include "result_codes.h"
@@ -17,6 +19,12 @@ typedef struct fluid_params_t
 	int iterationsNumMax;
     bool isRightSweepPedantic;
 } FluidParams;
+
+typedef std::function<void(const FluidParams& params, 
+                           const Array<double>& nextApproxR, 
+                           const Array<double>& nextApproxZ, 
+                           const Array<double>& curApproxR, 
+                           const Array<double>& curApproxZ)> MagneticFluidAction;
 
 
 class MagneticFluid
@@ -54,6 +62,11 @@ public:
     void resetIterationsCounter();
 
 
+    void setActionForKey(const std::string& key, const MagneticFluidAction& action);
+
+    void removeActionForKey(const std::string& key);
+
+
 	void calcInitialApproximation();
 
 	ResultCode calcRelaxation();
@@ -76,6 +89,8 @@ private:
 	Array<double> mNextApproxZ;
 	Array<double> mCurApproxR;
 	Array<double> mCurApproxZ;
+
+    std::unordered_map<std::string, MagneticFluidAction> mActions;
 
 
 	void calcNextApproximationR(const Array<double>& valZ, const Array<double>& prevValZ);
@@ -103,6 +118,9 @@ private:
 
 
 	bool isApproximationValid(const Array<double>& approx) const;
+
+
+    void runActions() const;
 };
 
 

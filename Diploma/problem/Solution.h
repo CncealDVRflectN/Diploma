@@ -48,6 +48,15 @@ public:
     void resetIterationsCounters();
 
 
+    void setFluidActionForKey(const std::string& key, const MagneticFluidAction& action);
+
+    void removeFluidActionForKey(const std::string& key);
+
+    void setFieldActionForKey(const std::string& key, const MagneticFieldAction& action);
+
+    void removeFieldActionForKey(const std::string& key);
+
+
 	void calcInitials();
 
 	ResultCode calcResult(double w);

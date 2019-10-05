@@ -14,6 +14,7 @@ MagneticFluid::MagneticFluid(const FluidParams& params) : mParams(params),
                                                           mNextApproxZ(mPointsNum), 
                                                           mCurApproxR(mPointsNum), 
                                                           mCurApproxZ(mPointsNum), 
+                                                          mActions(), 
                                                           mStep(1.0 / params.splitsNum), 
                                                           mCurRelaxationParam(params.relaxParamInitial), 
                                                           mIterationsCounter(0U)
@@ -110,6 +111,31 @@ void MagneticFluid::resetIterationsCounter()
 #pragma endregion
 
 
+#pragma region Actions
+
+void MagneticFluid::setActionForKey(const std::string& key, const MagneticFluidAction& action)
+{
+    mActions.insert_or_assign(key, action);
+}
+
+
+void MagneticFluid::removeActionForKey(const std::string& key)
+{
+    mActions.erase(key);
+}
+
+
+void MagneticFluid::runActions() const
+{
+    for (auto entry : mActions)
+    {
+        entry.second(mParams, mNextApproxR, mNextApproxZ, mCurApproxR, mCurApproxZ);
+    }
+}
+
+#pragma endregion
+
+
 #pragma region Approximations calculations
 
 void MagneticFluid::calcInitialApproximation()
@@ -144,6 +170,8 @@ ResultCode MagneticFluid::calcRelaxation()
         relaxation(mNextApproxZ, mCurApproxZ, mCurRelaxationParam);
 
         counter++;
+
+        runActions();
     } while (std::max(norm(mNextApproxR, mCurApproxR), norm(mNextApproxZ, mNextApproxZ)) > curEpsilon &&
              counter < mParams.iterationsNumMax);
 

@@ -115,12 +115,40 @@ void Solution::resetIterationsCounters()
 #pragma endregion
 
 
+#pragma region Actions
+
+void Solution::setFluidActionForKey(const std::string& key, const MagneticFluidAction& action)
+{
+    mFluid.setActionForKey(key, action);
+}
+
+
+void Solution::removeFluidActionForKey(const std::string& key)
+{
+    mFluid.removeActionForKey(key);
+}
+
+
+void Solution::setFieldActionForKey(const std::string& key, const MagneticFieldAction& action)
+{
+    mField.setActionForKey(key, action);
+}
+
+
+void Solution::removeFieldActionForKey(const std::string& key)
+{
+    mField.removeActionForKey(key);
+}
+
+#pragma endregion
+
+
 #pragma region Main calculations
 
 void Solution::calcInitials()
 {
-    mFluid.setRelaxationParam(1.0);
-    mField.setRelaxationParam(1.0);
+    mFluid.setRelaxationParam(mParams.relaxationParamInitial);
+    mField.setRelaxationParam(mParams.fieldRelaxParamInitial);
 
     mFluid.setW(mCurW);
     mFluid.calcInitialApproximation();

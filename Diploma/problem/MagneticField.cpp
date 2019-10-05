@@ -21,6 +21,7 @@ MagneticField::MagneticField(const MagneticParams& params) : mParams(params),
                                                              mNextApprox(mGrid.rowsNum(), mGrid.columnsNum()), 
                                                              mInnerDerivatives(mGrid.rowsNum()), 
                                                              mOuterDerivatives(mGrid.rowsNum()), 
+                                                             mActions(), 
                                                              mCurRelaxationParam(params.relaxParamInitial), 
                                                              mIterationsCounter(0U)
 {}
@@ -99,6 +100,31 @@ const Array<Vector2<double>>& MagneticField::outerDerivatives() const
 void MagneticField::resetIterationsCounter()
 {
     mIterationsCounter = 0U;
+}
+
+#pragma endregion
+
+
+#pragma region Actions
+
+void MagneticField::setActionForKey(const std::string& key, const MagneticFieldAction& action)
+{
+    mActions.insert_or_assign(key, action);
+}
+
+
+void MagneticField::removeActionForKey(const std::string& key)
+{
+    mActions.erase(key);
+}
+
+
+void MagneticField::runActions() const
+{
+    for (auto entry : mActions)
+    {
+        entry.second(mParams, mNextApprox, mCurApprox, mGrid);
+    }
 }
 
 #pragma endregion
@@ -357,6 +383,8 @@ ResultCode MagneticField::calcRelaxation()
         relaxation(mNextApprox, mCurApprox, mCurRelaxationParam);
 
         counter++;
+
+        runActions();
     } while (norm(mNextApprox, mCurApprox) > curEpsilon);
 
     mIterationsCounter += counter;

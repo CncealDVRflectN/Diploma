@@ -5,6 +5,8 @@
     #define SIGNED_ARR_SIZE
 #endif
 
+#include <functional>
+#include <unordered_map>
 #include "SimpleTriangleGrid.h"
 #include "result_codes.h"
 
@@ -18,6 +20,11 @@ typedef struct magnetic_params_t
 	double accuracy;
     int iterationsNumMax;
 } MagneticParams;
+
+typedef std::function<void(const MagneticParams& params, 
+                           const Matrix<double>& nextApprox, 
+                           const Matrix<double>& curApprox, 
+                           const SimpleTriangleGrid& grid)> MagneticFieldAction;
 
 
 class MagneticField
@@ -51,6 +58,11 @@ public:
     void resetIterationsCounter();
 
 
+    void setActionForKey(const std::string& key, const MagneticFieldAction& action);
+
+    void removeActionForKey(const std::string& key);
+
+
 	ResultCode calcRelaxation();
 
 
@@ -75,6 +87,8 @@ private:
 
 	Array<Vector2<double>> mInnerDerivatives;
 	Array<Vector2<double>> mOuterDerivatives;
+
+    std::unordered_map<std::string, MagneticFieldAction> mActions;
 
 	double mCurRelaxationParam;
 
@@ -104,6 +118,9 @@ private:
 	bool isApproximationValid(const Matrix<double>& approx) const;
 
 	bool isIndicesValid(const Vector2<arr_size_t>& indices) const;
+
+
+    void runActions() const;
 };
 
 #endif
