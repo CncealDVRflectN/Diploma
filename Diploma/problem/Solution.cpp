@@ -1,292 +1,363 @@
 #include "Solution.h"
+#include "math_ext.h"
 
 
-Solution::Solution(const ProblemParams& params)
+static const std::string FIELD_MODEL_ACTION_KEY = "field-model";
+
+
+#pragma region Parameters parsing
+
+FluidParams getFluidParams(const ProblemParams& problemParams)
 {
-	this->params = params;
+    FluidParams fluidParams;
 
+    fluidParams.w = 0.0;
+    fluidParams.chi = problemParams.chi;
+    fluidParams.epsilon = problemParams.accuracy;
+    fluidParams.iterationsNumMax = problemParams.iterationsMaxNum;
+    fluidParams.relaxParamInitial = problemParams.relaxationParamInitial;
+    fluidParams.relaxParamMin = problemParams.relaxationParamMin;
+    fluidParams.splitsNum = problemParams.splitsNum;
+    fluidParams.isRightSweepPedantic = problemParams.isRightSweepPedantic;
+
+    return fluidParams;
+}
+
+
+MagneticParams getFieldParams(const ProblemParams& problemParams)
+{
+    MagneticParams fieldParams;
+
+    fieldParams.chi = problemParams.chi;
+    fieldParams.accuracy = problemParams.fieldAccuracy;
+    fieldParams.gridParams = problemParams.gridParams;
+    fieldParams.iterationsNumMax = problemParams.fieldIterationsMaxNum;
+    fieldParams.relaxParamMin = problemParams.fieldRelaxParamMin;
+
+    return fieldParams;
+}
+
+#pragma endregion
+
+
+#pragma region Constructors
+
+Solution::Solution(const ProblemParams& params) : mParams(params), 
+                                                  mFluid(getFluidParams(params)), 
+                                                  mField(getFieldParams(params)), 
+                                                  mLastValidFluidSurface(mFluid.pointsNum()), 
+                                                  mLastValidFieldGrid(mField.grid().parameters()), 
+                                                  mLastValidFieldPotential(mField.grid().rowsNum(), mField.grid().columnsNum())
+{
 	if (params.resultsNum == 1)
 	{
-		stepW = params.wTarget - params.wInitial;
-		curW = params.wTarget;
+		mStepW = params.wTarget;
+		mCurW = params.wTarget;
 	}
 	else
 	{
-		stepW = (params.wTarget - params.wInitial) / (params.resultsNum - 1);
-		curW = params.wInitial;
-	}
-
-	field = new MagneticField(getFieldParams(params));
-	fluid = new MagneticFluid(getFluidParams(params));
-
-	int gridLinesNum = field->getGridLinesNum();
-	int gridColumnsNum = field->getGridColumnsNum();
-
-	lastValidFluidSurface = new Vector2[params.splitsNum + 1];
-
-	lastValidFieldGrid = new Vector2*[gridLinesNum];
-	lastValidFieldPotential = new double*[gridLinesNum];
-
-	for (int i = 0; i < gridLinesNum; i++)
-	{
-		lastValidFieldGrid[i] = new Vector2[gridColumnsNum];
-		lastValidFieldPotential[i] = new double[gridColumnsNum];
+		mStepW = params.wTarget / (params.resultsNum - 1);
+		mCurW = 0.0;
 	}
 }
 
-
-Solution::~Solution()
-{
-	int gridLinesNum = field->getGridLinesNum();
-	int gridColumnsNum = field->getGridColumnsNum();
-
-	for (int i = 0; i < gridLinesNum; i++)
-	{
-		delete lastValidFieldGrid[i];
-		delete lastValidFieldPotential[i];
-	}
-
-	delete lastValidFieldGrid;
-	delete lastValidFieldPotential;
-	delete lastValidFluidSurface;
-
-	delete field;
-	delete fluid;
-}
+#pragma endregion
 
 
-MagneticFluid* Solution::getMagneticFluid()
-{
-	return fluid;
-}
-
-
-MagneticField* Solution::getMagneticField()
-{
-	return field;
-}
-
-
-Vector2* Solution::getLastValidSurface()
-{
-	return lastValidFluidSurface;
-}
-
-
-Vector2** Solution::getLastValidFieldGrid()
-{
-	return lastValidFieldGrid;
-}
-
-
-double** Solution::getLastValidFieldPotential()
-{
-	return lastValidFieldPotential;
-}
-
-
-double Solution::getCurrentW()
-{
-	return curW;
-}
-
-
-int Solution::getSurfacePointsNum()
-{
-	return fluid->getPointsNum();
-}
-
-
-int Solution::getGridLinesNum()
-{
-	return field->getGridLinesNum();
-}
-
-
-int Solution::getGridColumnsNum()
-{
-	return field->getGridColumnsNum();
-}
-
-
-int Solution::getGridSurfaceColumnIndex()
-{
-	return field->getSurfaceColumnIndex();
-}
-
+#pragma region Parameters
 
 void Solution::setChi(double chi)
 {
-	params.chi = chi;
-	fluid->setChi(chi);
-	field->setChi(chi);
+    mParams.chi = chi;
+    mFluid.setChi(chi);
+    mField.setChi(chi);
 }
 
+
+double Solution::currentW() const
+{
+    return mCurW;
+}
+
+
+double Solution::volumeNonDimMul() const
+{
+    return mFluid.volumeNondimMul();
+}
+
+
+double Solution::heightCoef() const
+{
+    return mFluid.heightCoef();
+}
+
+
+const Array<Vector2<double>>& Solution::fluidSurface() const
+{
+    return mFluid.lastValidResult();
+}
+
+
+const MagneticFluid& Solution::fluid() const
+{
+    return mFluid;
+}
+
+
+const MagneticField& Solution::field() const
+{
+    return mField;
+}
+
+
+void Solution::resetIterationsCounters()
+{
+    mFluid.resetIterationsCounter();
+    mField.resetIterationsCounter();
+}
+
+#pragma endregion
+
+
+#pragma region Actions
+
+void Solution::setFluidActionForKey(const std::string& key, const MagneticFluidAction& action)
+{
+    mFluid.setActionForKey(key, action);
+}
+
+
+void Solution::removeFluidActionForKey(const std::string& key)
+{
+    mFluid.removeActionForKey(key);
+}
+
+
+void Solution::setFieldActionForKey(const std::string& key, const MagneticFieldAction& action)
+{
+    mField.setActionForKey(key, action);
+}
+
+
+void Solution::removeFieldActionForKey(const std::string& key)
+{
+    mField.removeActionForKey(key);
+}
+
+
+void Solution::fieldModelAction(const MagneticParams& params,
+                                const Matrix<double>& nextApprox,
+                                const Matrix<double>& curApprox,
+                                const SimpleTriangleGrid& grid)
+{
+    double b = 3.0 / (3.0 + params.chi);
+    double volume = M_PI * M_PI * M_PI;
+    double discrepancy = 0.0;
+    double maxDiscrepancy = 0.0;
+    arr_size_t gridRowsNum = grid.rowsNum();
+    arr_size_t gridColumnsNum = grid.columnsNum();
+    arr_size_t gridSurfaceColumnIndex = grid.surfaceColumnsIndex();
+
+    printf("\n=========================== FIELD DISCREPANCY ===========================\n");
+
+    for (arr_size_t i = gridRowsNum - 1; i >= 0; i--)
+    {
+        for (arr_size_t j = 0; j < gridSurfaceColumnIndex; j++)
+        {
+            discrepancy = std::abs(nextApprox(i, j) - b * grid(i, j).z);
+            maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+            printf("%.3e ", discrepancy);
+        }
+
+        discrepancy = std::abs(nextApprox(i, gridSurfaceColumnIndex) - b * grid(i, gridSurfaceColumnIndex).z);
+        maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+        printf("| %.3e | ", discrepancy);
+
+        for (arr_size_t j = gridSurfaceColumnIndex + 1; j < gridColumnsNum; j++)
+        {
+            double tmp = volume * std::pow(grid(i, j).r * grid(i, j).r + grid(i, j).z * grid(i, j).z, 1.5);
+            discrepancy = std::abs(nextApprox(i, j) - grid(i, j).z * (1.0 - (1.0 - b) / tmp));
+            maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+            printf("%.3e ", discrepancy);
+        }
+
+        printf("\n");
+    }
+
+    printf("\nMax discrepancy: %.3e \n\n", maxDiscrepancy);
+}
+
+#pragma endregion
+
+
+#pragma region Main calculations
 
 void Solution::calcInitials()
 {
-	fluid->setRelaxationParam(1.0);
-	field->setRelaxationParam(1.0);
+    mFluid.setRelaxationParam(mParams.relaxationParamInitial);
+    mField.setRelaxationParam(mParams.fieldRelaxParamInitial);
 
-	fluid->setW(curW);
-	fluid->calcInitialApproximation();
-	field->generateGrid(fluid->getLastValidResult(), fluid->getPointsNum());
-	field->calcInitialApproximation();
-	field->calcRelaxation();
-	calcDerivatives();
+    mFluid.setW(mCurW);
+    mFluid.calcInitialApproximation();
+    mField.updateGrid(mFluid.lastValidResult());
+    mField.calcInitialApproximation();
 
-	updateLastValidResults();
+    mFluid.setDerivatives(calcDerivatives());
+
+    updateLastValidResults();
 }
 
 
-ProblemResultCode Solution::calcResult(double w)
+ResultCode Solution::calcResult(double w)
 {
-	ProblemResultCode resultCode = INVALID_RESULT;
+    ResultCode resultCode = INVALID_RESULT;
 
-	fluid->setW(w);
+    mFluid.setW(w);
 
-	while (resultCode != SUCCESS &&
-		fluid->getCurrentRelaxationParam() >= params.relaxationParamMin &&
-		field->getCurrentRelaxationParam() >= params.fieldRelaxParamMin)
-	{
-		resultCode = fluid->calcRelaxation();
+    while (resultCode != SUCCESS &&
+           mFluid.currentRelaxationParam() >= mParams.relaxationParamMin &&
+           mField.currentRelaxationParam() >= mParams.fieldRelaxParamMin)
+    {
+        resultCode = mFluid.calcRelaxation();
 
-		if (resultCode == FLUID_SUCCESS)
-		{
-			field->generateGrid(fluid->getLastValidResult(), fluid->getPointsNum());
-			resultCode = field->calcRelaxation();
+        if (resultCode == FLUID_SUCCESS)
+        {
+            mField.updateGrid(mFluid.lastValidResult());
+            resultCode = mField.calcRelaxation();
 
-			if (resultCode == FIELD_SUCCESS)
-			{
-				if (isAccuracyReached())
-				{
-					resultCode = SUCCESS;
-				}
-				else
-				{
-					resultCode = ACCURACY_NOT_REACHED;
-				}
+            if (resultCode == FIELD_SUCCESS)
+            {
+                if (isAccuracyReached())
+                {
+                    resultCode = SUCCESS;
+                }
+                else
+                {
+                    resultCode = ACCURACY_NOT_REACHED;
+                }
 
-				updateLastValidResults();
-				calcDerivatives();
-			}
-			else
-			{
-				fluid->setLastValidResult(lastValidFluidSurface);
-				field->setLastValidResult(lastValidFieldPotential);
-				field->setGrid(lastValidFieldGrid);
+                updateLastValidResults();
+                mFluid.setDerivatives(calcDerivatives());
+            }
+            else
+            {
+                mFluid.setLastValidResult(mLastValidFluidSurface);
+                mField.setLastValidResult(mLastValidFieldPotential);
+                mField.setGrid(mLastValidFieldGrid);
 
-				field->setRelaxationParam(0.5 * field->getCurrentRelaxationParam());
-			}
-		}
-		else
-		{
-			fluid->setLastValidResult(lastValidFluidSurface);
-			field->setLastValidResult(lastValidFieldPotential);
-			field->setGrid(lastValidFieldGrid);
+                mField.setRelaxationParam(0.5 * mField.currentRelaxationParam());
+            }
+        }
+        else
+        {
+            mFluid.setLastValidResult(mLastValidFluidSurface);
+            mField.setLastValidResult(mLastValidFieldPotential);
+            mField.setGrid(mLastValidFieldGrid);
 
-			fluid->setRelaxationParam(0.5 * fluid->getCurrentRelaxationParam());
-		}
-	}
+            mFluid.setRelaxationParam(0.5 * mFluid.currentRelaxationParam());
+        }
+    }
 
-	if (resultCode == SUCCESS)
-	{
-		curW = w;
+    if (resultCode == SUCCESS)
+    {
+        mCurW = w;
 
-		if (curW >= params.wTarget || fabs(curW - params.wTarget) <= 0.00001)
-		{
-			resultCode = TARGET_REACHED;
-		}
-	}
-	else
-	{
-		fluid->setW(curW);
-	}
+        if (mCurW >= mParams.wTarget || std::abs(mCurW - mParams.wTarget) <= 0.00001)
+        {
+            resultCode = TARGET_REACHED;
+        }
+    }
+    else
+    {
+        mFluid.setW(mCurW);
+    }
 
-	return resultCode;
+    return resultCode;
 }
 
 
-ProblemResultCode Solution::calcNextResult()
+ResultCode Solution::calcNextResult()
 {
-	double nextW = curW + stepW;
-	return calcResult(nextW);
+    double nextW = mCurW + mStepW;
+    return calcResult(nextW);
 }
 
 
-FluidParams Solution::getFluidParams(const ProblemParams& problemParams)
+ResultCode Solution::calcFieldModelProblem()
 {
-	FluidParams fluidParams;
+    ResultCode resultCode = INVALID_RESULT;
 
-	fluidParams.w = problemParams.wInitial;
-	fluidParams.chi = problemParams.chi;
-	fluidParams.epsilon = problemParams.accuracy;
-	fluidParams.iterationsNumMax = problemParams.iterationsMaxNum;
-	fluidParams.relaxParamMin = problemParams.relaxationParamMin;
-	fluidParams.splitsNum = problemParams.splitsNum;
+    mFluid.setRelaxationParam(mParams.relaxationParamInitial);
+    mField.setRelaxationParam(mParams.fieldModelRelaxParamInitial);
 
-	return fluidParams;
+    mField.setChi(mParams.fieldModelChi);
+
+    mFluid.calcInitialApproximation();
+    mField.updateGrid(mFluid.lastValidResult());
+    mField.calcInitialApproximation();
+
+    mField.setActionForKey(FIELD_MODEL_ACTION_KEY, std::bind(&Solution::fieldModelAction, this, 
+                                                             std::placeholders::_1, std::placeholders::_2, 
+                                                             std::placeholders::_3, std::placeholders::_4));
+
+    while (resultCode != FIELD_SUCCESS && 
+           mField.currentRelaxationParam() >= mParams.fieldModelRelaxParamMin)
+    {
+        resultCode = mField.calcRelaxation();
+
+        if (resultCode != FIELD_SUCCESS)
+        {
+            mField.setRelaxationParam(0.5 * mFluid.currentRelaxationParam());
+        }
+    }
+
+    mField.removeActionForKey(FIELD_MODEL_ACTION_KEY);
+
+    return resultCode;
 }
 
+#pragma endregion
 
-MagneticParams Solution::getFieldParams(const ProblemParams& problemParams)
+
+#pragma region Calculate derivatives
+
+Array<Vector2<double>> Solution::calcDerivatives() const
 {
-	MagneticParams fieldParams;
+    arr_size_t pointsNum = mFluid.pointsNum();
+    arr_size_t limit = pointsNum - 1;
+    Array<Vector2<double>> derivatives(pointsNum);
+    double param = 0.0;
 
-	fieldParams.chi = problemParams.chi;
-	fieldParams.accuracy = problemParams.fieldAccuracy;
-	fieldParams.infSplitsNum = problemParams.fieldInfinitySplitsNum;
-	fieldParams.internalSplitsNum = problemParams.fieldInternalSplitsNum;
-	fieldParams.surfaceSplitsNum = problemParams.fieldSurfaceSplitsNum;
-	fieldParams.iterationsNumMax = problemParams.fieldIterationsMaxNum;
-	fieldParams.relaxParamMin = problemParams.fieldRelaxParamMin;
+    for (arr_size_t i = 0; i < pointsNum; i++)
+    {
+        param = (double)i / limit;
+        derivatives(i) = mField.calcInnerDerivative(param);
+    }
 
-	return fieldParams;
+    return derivatives;
 }
 
+#pragma endregion
+
+
+#pragma region Update last valid result
 
 void Solution::updateLastValidResults()
 {
-	Vector2* surface = fluid->getLastValidResult();
-	Vector2** grid = field->getGrid();
-	double** potential = field->getLastValidResult();
-	int surfacePointsNum = fluid->getPointsNum();
-	int gridLinesNum = field->getGridLinesNum();
-	int gridColumnsNum = field->getGridColumnsNum();
-
-	for (int i = 0; i < surfacePointsNum; i++)
-	{
-		lastValidFluidSurface[i] = surface[i];
-	}
-
-	for (int i = 0; i < gridLinesNum; i++)
-	{
-		for (int j = 0; j < gridColumnsNum; j++)
-		{
-			lastValidFieldGrid[i][j] = grid[i][j];
-			lastValidFieldPotential[i][j] = potential[i][j];
-		}
-	}
+    mLastValidFluidSurface = mFluid.lastValidResult();
+    mLastValidFieldGrid = mField.grid();
+    mLastValidFieldPotential = mField.lastValidResult();
 }
 
+#pragma endregion
 
-void Solution::calcDerivatives()
+
+#pragma region Checks
+
+bool Solution::isAccuracyReached() const
 {
-	Vector2* derivatives = fluid->getDerivatives();
-	int pointsNum = fluid->getPointsNum();
-	double param = 0.0;
-
-	for (int i = 0; i < pointsNum; i++)
-	{
-		param = i / (pointsNum - 1);
-
-		derivatives[i] = field->calcInnerDerivative(param);
-	}
+    return norm(mFluid.lastValidResult(), mLastValidFluidSurface) <= mParams.accuracy &&
+           norm(mField.lastValidResult(), mLastValidFieldPotential) <= mParams.fieldAccuracy;
 }
 
-
-bool Solution::isAccuracyReached()
-{
-	return norm(fluid->getLastValidResult(), lastValidFluidSurface, fluid->getPointsNum()) <= 10.0 * params.accuracy &&
-		   norm(field->getLastValidResult(), lastValidFieldPotential, field->getGridLinesNum(), field->getGridColumnsNum()) <= 10.0 * params.fieldAccuracy;
-}
+#pragma endregion

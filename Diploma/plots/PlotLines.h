@@ -1,15 +1,22 @@
 #ifndef DIPLOMA_PLOTLINES_H
 #define DIPLOMA_PLOTLINES_H
 
+
+#ifndef GNUPLOT
+    #define GNUPLOT "gnuplot"
+#endif
+
+
+#include "Array.h"
+#include "Pipe.h"
 #include <vector>
 #include <string>
-#include "../util/util.h"
 
 
 typedef struct plot_line_t
 {
-	std::vector<Vector2> points;
-	std::string title;
+    std::string title;
+	Array<Vector2<double>> points;
 } PlotLine;
 
 
@@ -27,20 +34,16 @@ typedef struct plot_lines_params_t
 class PlotLines
 {
 public:
-	PlotLines(const PlotLinesParams& plotParams);
+	PlotLines(const PlotLinesParams& params);
 
-	void addLine(PlotLine& line);
 
-	void clear();
-
-	void plot();
+	void plot(const std::vector<PlotLine>& lines);
 
 	void close();
 
 private:
-	std::vector<PlotLine> lines;
-	PlotLinesParams params;
-	FILE* pipe;
+	Pipe mPipe;
+	PlotLinesParams mParams;
 };
 
 #endif

@@ -8,20 +8,23 @@
 
 typedef struct problem_params_t
 {
-	double wInitial;
+    STGridParams gridParams;
 	double wTarget;
+    double relaxationParamInitial;
 	double relaxationParamMin;
+    double fieldRelaxParamInitial;
 	double fieldRelaxParamMin;
+    double fieldModelRelaxParamInitial;
+    double fieldModelRelaxParamMin;
 	double accuracy;
 	double fieldAccuracy;
 	double chi;
+    double fieldModelChi;
 	int splitsNum;
-	int fieldSurfaceSplitsNum;
-	int fieldInternalSplitsNum;
-	int fieldInfinitySplitsNum;
 	int iterationsMaxNum;
 	int fieldIterationsMaxNum;
 	int resultsNum;
+    bool isRightSweepPedantic;
 } ProblemParams;
 
 
@@ -30,59 +33,65 @@ class Solution
 public:
 	Solution(const ProblemParams& params);
 
-	~Solution();
+	
+    void setChi(double chi);
 
-	MagneticFluid* getMagneticFluid();
+    double currentW() const;
 
-	MagneticField* getMagneticField();
+    double volumeNonDimMul() const;
 
-	Vector2* getLastValidSurface();
+    double heightCoef() const;
 
-	Vector2** getLastValidFieldGrid();
+    const Array<Vector2<double>>& fluidSurface() const;
 
-	double** getLastValidFieldPotential();
+    const MagneticFluid& fluid() const;
 
-	double getCurrentW();
+    const MagneticField& field() const;
 
-	int getSurfacePointsNum();
+    void resetIterationsCounters();
 
-	int getGridLinesNum();
 
-	int getGridColumnsNum();
+    void setFluidActionForKey(const std::string& key, const MagneticFluidAction& action);
 
-	int getGridSurfaceColumnIndex();
+    void removeFluidActionForKey(const std::string& key);
 
-	void setChi(double chi);
+    void setFieldActionForKey(const std::string& key, const MagneticFieldAction& action);
+
+    void removeFieldActionForKey(const std::string& key);
+
 
 	void calcInitials();
 
-	ProblemResultCode calcResult(double w);
+	ResultCode calcResult(double w);
 
-	ProblemResultCode calcNextResult();
+	ResultCode calcNextResult();
+
+    ResultCode calcFieldModelProblem();
 
 private:
-	MagneticField* field;
-	MagneticFluid* fluid;
+    ProblemParams mParams;
 
-	ProblemParams params;
+	MagneticField mField;
+	MagneticFluid mFluid;
 
-	Vector2* lastValidFluidSurface;
-	Vector2** lastValidFieldGrid;
-	double** lastValidFieldPotential;
+    SimpleTriangleGrid mLastValidFieldGrid;
+	Array<Vector2<double>> mLastValidFluidSurface;
+	Matrix<double> mLastValidFieldPotential;
 
-	double curW;
-	double stepW;
+	double mCurW;
+	double mStepW;
 
-
-	FluidParams getFluidParams(const ProblemParams& problemParams);
-
-	MagneticParams getFieldParams(const ProblemParams& problemParams);
 
 	void updateLastValidResults();
 
-	void calcDerivatives();
+	Array<Vector2<double>> calcDerivatives() const;
 
-	bool isAccuracyReached();
+    void fieldModelAction(const MagneticParams& params,
+                          const Matrix<double>& nextApprox,
+                          const Matrix<double>& curApprox,
+                          const SimpleTriangleGrid& grid);
+
+	bool isAccuracyReached() const;
 };
 
 
