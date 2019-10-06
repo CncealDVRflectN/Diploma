@@ -22,9 +22,9 @@ void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution&
 
     double volumeNonDimMul = (programParams.isNonDim) ? solution.volumeNonDimMul() : 1.0;
 
-    printf("Ploting grid...\n");
+    printf("Plotting grid...\n");
     plotGrid.plot(solution.field().grid(), volumeNonDimMul);
-    printf("Ploting isolines...\n\n");
+    printf("Plotting isolines...\n\n");
     plotIsolines.plot(solution.field().grid(), solution.field().lastValidResult(), volumeNonDimMul);
 
     system("pause");
@@ -120,11 +120,11 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
         PlotIsolinesParams plotIsolinesParams = optsHandler.isolinesPlotParameters();
         PlotIsolines plotIsolines(plotIsolinesParams);
 
-        printf("Ploting surface lines...\n");
+        printf("Plotting surface lines...\n");
         resultsPlot.plot(surfaceLines);
-        printf("Ploting grid...\n");
+        printf("Plotting grid...\n");
         plotGrid.plot(solution.field().grid(), volumeNonDimMul);
-        printf("Ploting isolines...\n\n");
+        printf("Plotting isolines...\n\n");
         plotIsolines.plot(solution.field().grid(), solution.field().lastValidResult(), volumeNonDimMul);
 
         system("pause");
@@ -136,7 +136,7 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
         curChi += stepChi;
     }
 
-    printf("Ploting height coefficient lines...\n\n");
+    printf("Plotting height coefficient lines...\n\n");
     heightCoefsPlot.plot(heightCoefsLines);
 
     system("pause");
