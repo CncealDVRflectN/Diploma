@@ -42,6 +42,11 @@
       "project": "CMakeLists.txt",
       "projectTarget": "Diploma.exe (Diploma\\Diploma.exe)",
       "name": "Diploma.exe (Diploma\\Diploma.exe)"
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "name": "CMakeLists.txt"
     }
   ]
 }
