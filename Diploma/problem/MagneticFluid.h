@@ -1,20 +1,30 @@
 #ifndef DIPLOMA_MAGNETICFLUID_H
 #define DIPLOMA_MAGNETICFLUID_H
 
-#include "../util/util.h"
-#include "../util/RightSweep.h"
+#include <functional>
+#include <unordered_map>
+#include "RightSweep.h"
 #include "MagneticField.h"
+#include "result_codes.h"
 
 
 typedef struct fluid_params_t
 {
+    double relaxParamInitial;
 	double relaxParamMin;
 	double epsilon;
 	double chi;
 	double w;
 	int splitsNum;
 	int iterationsNumMax;
+    bool isRightSweepPedantic;
 } FluidParams;
+
+typedef std::function<void(const FluidParams& params, 
+                           const Array<double>& nextApproxR, 
+                           const Array<double>& nextApproxZ, 
+                           const Array<double>& curApproxR, 
+                           const Array<double>& curApproxZ)> MagneticFluidAction;
 
 
 class MagneticFluid
@@ -22,77 +32,95 @@ class MagneticFluid
 public:
 	MagneticFluid(const FluidParams& params);
 
-	~MagneticFluid();
 
-	Vector2* getLastValidResult();
+    void setRelaxationParam(double param);
 
-	Vector2* getDerivatives();
+    double currentRelaxationParam() const;
 
-	FluidParams getFluidParams();
+    void setW(double w);
 
-	ProblemResultCode getLastMagneticFieldResultCode();
+    double currentW() const;
 
-	double getCurrentRelaxationParam();
+    void setChi(double chi);
 
-	double getCurrentW();
+    double currentChi() const;
 
-	int getPointsNum();
+    FluidParams parameters() const;
 
-	unsigned int getIterationsCounter();
+    arr_size_t pointsNum() const;
 
-	void setLastValidResult(Vector2* result);
+    void setLastValidResult(const Array<Vector2<double>>& values);
 
-	void setW(double w);
+    const Array<Vector2<double>>& lastValidResult() const;
 
-	void setChi(double chi);
+    void setDerivatives(const Array<Vector2<double>>& values);
 
-	void setRelaxationParam(double relaxParam);
+    double volumeNondimMul() const;
 
-	void setDerivatives(Vector2* derivs);
+    double heightCoef() const;
+
+    void resetIterationsCounter();
+
+
+    void setActionForKey(const std::string& key, const MagneticFluidAction& action);
+
+    void removeActionForKey(const std::string& key);
+
 
 	void calcInitialApproximation();
 
-	ProblemResultCode calcRelaxation();
-
-	double calcVolumeNondimMul();
+	ResultCode calcRelaxation();
 
 private:
-	FluidParams fluidParams;
+    arr_size_t mPointsNum;
 
-	RightSweep* rightSweep;
+    double mCurRelaxationParam;
+    double mStep;
 
-	ProblemResultCode lastFieldResultCode;
+    unsigned int mIterationsCounter;
 
-	Vector2* lastValidResult;
-	Vector2* derivatives;
-	double* nextApproxR;
-	double* nextApproxZ;
-	double* curApproxR;
-	double* curApproxZ;
+	FluidParams mParams;
 
-	double relaxationParam;
-	double step;
+	RightSweep mRightSweep;
 
-	int pointsNum;
+	Array<Vector2<double>> mLastValidResult;
+	Array<Vector2<double>> mDerivatives;
+	Array<double> mNextApproxR;
+	Array<double> mNextApproxZ;
+	Array<double> mCurApproxR;
+	Array<double> mCurApproxZ;
 
-	unsigned int iterationsCounter;
+    std::unordered_map<std::string, MagneticFluidAction> mActions;
 
 
-	void calcNextApproximationR(const double* valZ, const double* prevValZ);
+	void calcNextApproximationR(const Array<double>& valZ, const Array<double>& prevValZ);
 
-	void calcNextApproximationZ(const double* valR, const double* prevValR);
+	void calcNextApproximationZ(const Array<double>& valR, const Array<double>& prevValR);
 
-	double calcIntegralTrapeze(const double* approxR, const double* approxZ);
 
-	double calcIntegralTrapeze(const Vector2* approx);
+	double calcIntegralTrapeze(const Array<double>& approxR, const Array<double>& approxZ) const;
 
-	double calcMagneticIntegralTrapeze(const double* approxR, const double* approxZ, double integralCbrt);
+	double calcIntegralTrapeze(const Array<Vector2<double>>& approx) const;
 
-	double calcQ(const double* approxR, const double* approxZ, double integralCbrt);
+	double calcMagneticIntegralTrapeze(const Array<double>& approxR, 
+                                       const Array<double>& approxZ, 
+                                       double integralCbrt) const;
 
-	double calcMagneticF(const double* approxR, const double* approxZ, int index, double integralCbrt);
 
-	bool isApproximationValid(const double* approx);
+	double calcQ(const Array<double>& approxR, 
+                 const Array<double>& approxZ, 
+                 double integralCbrt) const;
+
+	double calcMagneticF(const Array<double>& approxR, 
+                         const Array<double>& approxZ, 
+                         int index, 
+                         double integralCbrt) const;
+
+
+	bool isApproximationValid(const Array<double>& approx) const;
+
+
+    void runActions() const;
 };
 
 

@@ -1,19 +1,30 @@
 #ifndef DIPLOMA_MAGNETICFIELD_H
 #define DIPLOMA_MAGNETICFIELD_H
 
-#include "../util/util.h"
+#ifndef SIGNED_ARR_SIZE
+    #define SIGNED_ARR_SIZE
+#endif
+
+#include <functional>
+#include <unordered_map>
+#include "SimpleTriangleGrid.h"
+#include "result_codes.h"
 
 
 typedef struct magnetic_params_t
 {
-	int surfaceSplitsNum;
-	int infSplitsNum;
-	int internalSplitsNum;
-	int iterationsNumMax;
+	STGridParams gridParams;
+    double relaxParamInitial;
+    double relaxParamMin;
 	double chi;
 	double accuracy;
-	double relaxParamMin;
+    int iterationsNumMax;
 } MagneticParams;
+
+typedef std::function<void(const MagneticParams& params, 
+                           const Matrix<double>& nextApprox, 
+                           const Matrix<double>& curApprox, 
+                           const SimpleTriangleGrid& grid)> MagneticFieldAction;
 
 
 class MagneticField
@@ -21,79 +32,95 @@ class MagneticField
 public:
 	MagneticField(const MagneticParams& params);
 
-	~MagneticField();
 
-	Vector2** getGrid();
+    void setChi(double chi);
 
-	double** getLastValidResult();
+    double currentChi() const;
 
-	Vector2* getInnerDerivatives();
+    void setRelaxationParam(double param);
 
-	Vector2* getOuterDerivatives();
+    double currentRelaxationParam() const;
 
-	int getGridLinesNum();
+    MagneticParams parameters() const;
 
-	int getGridColumnsNum();
+    void setGrid(const SimpleTriangleGrid& grid);
 
-	int getSurfaceColumnIndex();
+    const SimpleTriangleGrid& grid() const;
 
-	unsigned int getIterationsCounter();
+    void setLastValidResult(const Matrix<double>& values);
 
-	double getCurrentRelaxationParam();
+    const Matrix<double>& lastValidResult() const;
 
-	void setLastValidResult(double** result);
+    const Array<Vector2<double>>& innerDerivatives() const;
 
-	void setGrid(Vector2** grid);
+    const Array<Vector2<double>>& outerDerivatives() const;
 
-	void setRelaxationParam(double relaxParam);
+    void resetIterationsCounter();
 
-	void setChi(double chi);
 
-	ProblemResultCode calcRelaxation();
+    void setActionForKey(const std::string& key, const MagneticFieldAction& action);
 
-	Vector2 calcInnerDerivative(double param);
+    void removeActionForKey(const std::string& key);
 
-	Vector2 calcOuterDerivative(double param);
 
-	void generateGrid(const double* surfacePointsR, const double* surfacePointsZ, int pointsNum);
+	ResultCode calcRelaxation();
 
-	void generateGrid(const Vector2* surfacePoints, int pointsNum);
+
+	Vector2<double> calcInnerDerivative(double param) const;
+
+	Vector2<double> calcOuterDerivative(double param) const;
+
+
+    void updateGrid(const Array<Vector2<double>>& surfacePoints);
+
 
 	void calcInitialApproximation();
+
 private:
-	MagneticParams params;
+	MagneticParams mParams;
 
-	Vector2** grid;
+	SimpleTriangleGrid mGrid;
 
-	double** lastValidValues;
-	double** curApprox;
-	double** nextApprox;
+	Matrix<double> mLastValidValues;
+	Matrix<double> mCurApprox;
+	Matrix<double> mNextApprox;
 
-	Vector2* innerDerivatives;
-	Vector2* outerDerivatives;
+	Array<Vector2<double>> mInnerDerivatives;
+	Array<Vector2<double>> mOuterDerivatives;
 
-	double relaxationParam;
+    std::unordered_map<std::string, MagneticFieldAction> mActions;
 
-	int gridLinesNum;
-	int gridColumnsNum;
-	int surfaceColumnIndex;
+	double mCurRelaxationParam;
 
-	unsigned int iterationsCounter;
+	unsigned int mIterationsCounter;
 
 
-	double calcCoefficientIntegral(const Vector2& vert1, const Vector2& vert2, const Vector2& vert3, double doubleTriangleArea, double chi);
+	double calcCoefficientIntegral(const Vector2<double>& vert1, 
+                                   const Vector2<double>& vert2, 
+                                   const Vector2<double>& vert3, 
+                                   double doubleTriangleArea, 
+                                   double chi) const;
 
-	double calcCoefficient(int i, int j, int coefIndex);
+    double calcCoefficient(const Vector2<arr_size_t>& globIndex, arr_size_t coefIndex);
 
-	double calcNextValue(int i, int j);
+	double calcCoefficient(arr_size_t i, arr_size_t j, arr_size_t coefIndex);
+
+    double calcNextValue(const Vector2<arr_size_t>& globIndex);
+
+	double calcNextValue(arr_size_t i, arr_size_t j);
 
 	void calcNextApproximation();
 
-	bool isApproximationValid(double** approx);
 
-	bool isIndicesValid(const Indices2& indices);
+    void calcDerivatives();
 
-	void calcDerivatives();
+
+	bool isApproximationValid(const Matrix<double>& approx) const;
+
+	bool isIndicesValid(const Vector2<arr_size_t>& indices) const;
+
+
+    void runActions() const;
 };
 
 #endif
