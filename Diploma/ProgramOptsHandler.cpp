@@ -23,38 +23,48 @@ enum OptsIds
     FIELD_ACCURACY_OPT,
     FIELD_RELAXATION_PARAM_INITIAL_OPT,
     FIELD_RELAXATION_PARAM_MIN_OPT,
-    FIELD_INFINITY_POS_MULTIPLIER,
+    FIELD_MODEL_RELAXATION_PARAM_INITIAL_OPT,
+    FIELD_MODEL_RELAXATION_PARAM_MIN_OPT,
+    FIELD_MODEL_CHI_OPT,
+    FIELD_INFINITY_POS_MULTIPLIER_OPT,
     EQUAL_AXIS_OPT,
     NONDIM_OPT,
-    PEDANTIC_RIGHT_SWEEP_OPT
+    PEDANTIC_RIGHT_SWEEP_OPT,
+    MAIN_PROBLEM_OPT,
+    FIELD_MODEL_PROBLEM_OPT
 };
 
 
 static const LongOpt LONG_OPTS[] = {
-    {"window-width",			    WINDOW_WIDTH_OPT},
-    {"window-height",			    WINDOW_HEIGHT_OPT},
-    {"w-param-target",			    W_PARAM_TARGET_OPT},
-    {"chi-param-initial",		    CHI_INITIAL_OPT},
-    {"chi-param-target",		    CHI_TARGET_OPT},
-    {"relaxation-param-initial",    RELAXATION_PARAM_INITIAL_OPT},
-    {"relaxation-param-min",	    RELAXATION_PARAM_MIN_OPT},
-    {"accuracy",				    ACCURACY_OPT},
-    {"splits-num",				    SPLITS_NUM_OPT},
-    {"iterations-max-num",		    ITERATIONS_MAX_NUM_OPT},
-    {"w-results-num",			    W_RESULTS_NUM_OPT},
-    {"chi-results-num",			    CHI_RESULTS_NUM_OPT},
-    {"field-surf-splits-num",	    FIELD_SURFACE_SPLITS_NUM_OPT},
-    {"field-int-splits-num",	    FIELD_INTERNAL_SPLITS_NUM_OPT},
-    {"field-inf-splits-num",	    FIELD_INFINITY_SPLITS_NUM_OPT},
-    {"field-iter-max-num",		    FIELD_ITERATIONS_MAX_NUM_OPT},
-    {"field-accuracy",			    FIELD_ACCURACY_OPT},
-    {"field-relax-param-initial",   FIELD_RELAXATION_PARAM_INITIAL_OPT},
-    {"field-relax-param-min",	    FIELD_RELAXATION_PARAM_MIN_OPT},
-    {"field-inf-pos-multiplier",    FIELD_INFINITY_POS_MULTIPLIER},
-    {"equal-axis",				    EQUAL_AXIS_OPT},
-    {"nondim",					    NONDIM_OPT},
-    {"pedantic-right-sweep",        PEDANTIC_RIGHT_SWEEP_OPT},
-    {nullptr,					    0}
+    {"window-width",			            WINDOW_WIDTH_OPT},
+    {"window-height",			            WINDOW_HEIGHT_OPT},
+    {"w-param-target",			            W_PARAM_TARGET_OPT},
+    {"chi-param-initial",		            CHI_INITIAL_OPT},
+    {"chi-param-target",		            CHI_TARGET_OPT},
+    {"relaxation-param-initial",            RELAXATION_PARAM_INITIAL_OPT},
+    {"relaxation-param-min",	            RELAXATION_PARAM_MIN_OPT},
+    {"accuracy",				            ACCURACY_OPT},
+    {"splits-num",				            SPLITS_NUM_OPT},
+    {"iterations-max-num",		            ITERATIONS_MAX_NUM_OPT},
+    {"w-results-num",			            W_RESULTS_NUM_OPT},
+    {"chi-results-num",			            CHI_RESULTS_NUM_OPT},
+    {"field-surf-splits-num",	            FIELD_SURFACE_SPLITS_NUM_OPT},
+    {"field-int-splits-num",	            FIELD_INTERNAL_SPLITS_NUM_OPT},
+    {"field-inf-splits-num",	            FIELD_INFINITY_SPLITS_NUM_OPT},
+    {"field-iter-max-num",		            FIELD_ITERATIONS_MAX_NUM_OPT},
+    {"field-accuracy",			            FIELD_ACCURACY_OPT},
+    {"field-relax-param-initial",           FIELD_RELAXATION_PARAM_INITIAL_OPT},
+    {"field-relax-param-min",	            FIELD_RELAXATION_PARAM_MIN_OPT},
+    {"field-model-relax-param-initial",     FIELD_MODEL_RELAXATION_PARAM_INITIAL_OPT},
+    {"field-model-relax-param-min",         FIELD_MODEL_RELAXATION_PARAM_MIN_OPT},
+    {"field-model-chi",                     FIELD_MODEL_CHI_OPT},
+    {"field-inf-pos-multiplier",            FIELD_INFINITY_POS_MULTIPLIER_OPT},
+    {"equal-axis",				            EQUAL_AXIS_OPT},
+    {"nondim",					            NONDIM_OPT},
+    {"pedantic-right-sweep",                PEDANTIC_RIGHT_SWEEP_OPT},
+    {"main-problem",                        MAIN_PROBLEM_OPT},
+    {"field-model-problem",                 FIELD_MODEL_PROBLEM_OPT},
+    {nullptr,					            0}
 };
 
 
@@ -70,22 +80,27 @@ ProgramOptsHandler::ProgramOptsHandler()
     mParams.relaxationParamMin = 0.1;
     mParams.fieldRelaxParamInitial = 1.0;
     mParams.fieldRelaxParamMin = 0.1;
+    mParams.fieldModelRelaxParamInitial = 1.0;
+    mParams.fieldModelRelaxParamMin = 0.1;
     mParams.accuracy = 0.1;
     mParams.fieldAccuracy = 0.1;
-    mParams.chiInitial = 0.0;
-    mParams.chiTarget = 0.0;
+    mParams.chiInitial = 1.0;
+    mParams.chiTarget = 1.0;
     mParams.splitsNum = 100;
     mParams.fieldSurfaceSplitsNum = 10;
     mParams.fieldInternalSplitsNum = 5;
     mParams.fieldInfinitySplitsNum = 5;
     mParams.iterationsMaxNum = 1000;
     mParams.fieldIterationsMaxNum = 1000;
+    mParams.fieldModelChi = 1.0;
     mParams.fieldInfinityPosMultiplier = 4.0;
     mParams.resultsNumW = 1;
     mParams.resultsNumChi = 1;
     mParams.isEqualAxis = false;
     mParams.isNonDim = false;
     mParams.isRightSweepPedantic = false;
+    mParams.isMainProblemEnabled = false;
+    mParams.isFieldModelProblemEnabled = false;
 }
 
 
@@ -115,8 +130,11 @@ ProblemParams ProgramOptsHandler::problemParameters() const
     problemParams.wTarget = mParams.wTarget;
     problemParams.relaxationParamInitial = mParams.relaxationParamInitial;
     problemParams.fieldRelaxParamInitial = mParams.fieldRelaxParamInitial;
+    problemParams.fieldModelRelaxParamInitial = mParams.fieldModelRelaxParamInitial;
     problemParams.relaxationParamMin = mParams.relaxationParamMin;
     problemParams.fieldRelaxParamMin = mParams.fieldRelaxParamMin;
+    problemParams.fieldModelRelaxParamMin = mParams.fieldModelRelaxParamMin;
+    problemParams.fieldModelChi = mParams.fieldModelChi;
     problemParams.iterationsMaxNum = mParams.iterationsMaxNum;
     problemParams.fieldIterationsMaxNum = mParams.fieldIterationsMaxNum;
     problemParams.resultsNum = mParams.resultsNumW;
@@ -287,7 +305,16 @@ void ProgramOptsHandler::handleOpt(int optId, char* optPtr)
     case FIELD_RELAXATION_PARAM_MIN_OPT:
         mParams.fieldRelaxParamMin = std::atof(optPtr);
         break;
-    case FIELD_INFINITY_POS_MULTIPLIER:
+    case FIELD_MODEL_RELAXATION_PARAM_INITIAL_OPT:
+        mParams.fieldModelRelaxParamInitial = std::atof(optPtr);
+        break;
+    case FIELD_MODEL_RELAXATION_PARAM_MIN_OPT:
+        mParams.fieldModelRelaxParamMin = std::atof(optPtr);
+        break;
+    case FIELD_MODEL_CHI_OPT:
+        mParams.fieldModelChi = std::atof(optPtr);
+        break;
+    case FIELD_INFINITY_POS_MULTIPLIER_OPT:
         mParams.fieldInfinityPosMultiplier = std::atof(optPtr);
         break;
     case EQUAL_AXIS_OPT:
@@ -298,6 +325,12 @@ void ProgramOptsHandler::handleOpt(int optId, char* optPtr)
         break;
     case PEDANTIC_RIGHT_SWEEP_OPT:
         mParams.isRightSweepPedantic = true;
+        break;
+    case MAIN_PROBLEM_OPT:
+        mParams.isMainProblemEnabled = true;
+        break;
+    case FIELD_MODEL_PROBLEM_OPT:
+        mParams.isFieldModelProblemEnabled = true;
         break;
     default:
         break;

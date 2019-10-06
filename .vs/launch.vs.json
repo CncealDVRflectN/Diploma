@@ -27,9 +27,14 @@
         "--field-accuracy=0.00001",
         "--field-relax-param-initial=1.0",
         "--field-relax-param-min=0.00001",
+        "--field-model-relax-param-initial=1.0",
+        "--field-model-relax-param-min=0.00001",
+        "--field-model-chi=1.0",
         "--field-inf-pos-multiplier=4.0",
         "--nondim",
-        "--equal-axis"
+        "--equal-axis",
+        "--field-model-problem",
+        "--main-problem"
       ]
     },
     {

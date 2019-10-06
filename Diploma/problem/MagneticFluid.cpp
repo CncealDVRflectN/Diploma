@@ -140,10 +140,14 @@ void MagneticFluid::runActions() const
 
 void MagneticFluid::calcInitialApproximation()
 {
+    printf("Calculating fluid initial approximation...\n");
+
     for (arr_size_t i = 0; i < mPointsNum; i++)
     {
         mLastValidResult(i) = { M_2_PI * sin(M_PI_2 * i * mStep), M_2_PI * cos(M_PI_2 * i * mStep) };
     }
+
+    printf("Fluid initial approximation calculated\n\n");
 }
 
 
@@ -151,6 +155,8 @@ ResultCode MagneticFluid::calcRelaxation()
 {
     double curEpsilon = mParams.epsilon * mCurRelaxationParam;
     int counter = 0;
+
+    printf("Calculating fluid relaxation...\n");
 
     for (arr_size_t i = 0; i < mPointsNum; i++)
     {
@@ -179,10 +185,12 @@ ResultCode MagneticFluid::calcRelaxation()
 
     if (counter >= mParams.iterationsNumMax)
     {
+        printf("Fluid relaxation iterations limit exceeded\n\n");
         return FLUID_ITERATIONS_LIMIT_EXCEEDED;
     }
     else if (!isApproximationValid(mNextApproxR) || !isApproximationValid(mNextApproxZ))
     {
+        printf("Fluid relaxation invalid result\n\n");
         return FLUID_INVALID_RESULT;
     }
     else
@@ -193,6 +201,8 @@ ResultCode MagneticFluid::calcRelaxation()
             mLastValidResult(i).z = mNextApproxZ(i);
         }
     }
+
+    printf("Fluid relaxation calculated\n\n");
 
     return FLUID_SUCCESS;
 }

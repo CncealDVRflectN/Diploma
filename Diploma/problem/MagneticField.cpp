@@ -276,6 +276,8 @@ void MagneticField::calcInitialApproximation()
     arr_size_t gridRowsNum = mGrid.rowsNum();
     arr_size_t gridColumnsNum = mGrid.columnsNum();
 
+    printf("Calculating field initial approximation...\n");
+
     for (arr_size_t i = 0; i < gridRowsNum; i++)
     {
         for (arr_size_t j = 0; j < gridColumnsNum; j++)
@@ -283,6 +285,8 @@ void MagneticField::calcInitialApproximation()
             mLastValidValues(i, j) = 0.0;
         }
     }
+
+    printf("Field initial approximation calculated\n\n");
 }
 
 
@@ -360,6 +364,8 @@ ResultCode MagneticField::calcRelaxation()
     arr_size_t gridColumnsNum = mGrid.columnsNum();
     arr_size_t limitColumns = gridColumnsNum - 1;
 
+    printf("Calculating field relaxation...\n");
+
     for (arr_size_t i = 0; i < gridRowsNum; i++)
     {
         for (arr_size_t j = 0; j < limitColumns; j++)
@@ -391,10 +397,12 @@ ResultCode MagneticField::calcRelaxation()
 
     if (counter >= mParams.iterationsNumMax)
     {
+        printf("Field relaxation iterations limit exceeded\n\n");
         return FIELD_ITERATIONS_LIMIT_EXCEEDED;
     }
     else if (!isApproximationValid(mNextApprox))
     {
+        printf("Field relaxation invalid result\n\n");
         return FIELD_INVALID_RESULT;
     }
     else
@@ -403,6 +411,8 @@ ResultCode MagneticField::calcRelaxation()
 
         calcDerivatives();
     }
+
+    printf("Field relaxation calculated\n\n");
 
     return FIELD_SUCCESS;
 }

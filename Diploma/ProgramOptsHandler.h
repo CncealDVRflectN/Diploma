@@ -14,10 +14,13 @@ typedef struct program_params_t
     double relaxationParamMin;
     double fieldRelaxParamInitial;
     double fieldRelaxParamMin;
+    double fieldModelRelaxParamInitial;
+    double fieldModelRelaxParamMin;
     double accuracy;
     double fieldAccuracy;
     double chiInitial;
     double chiTarget;
+    double fieldModelChi;
     double fieldInfinityPosMultiplier;
     int windowWidth;
     int windowHeight;
@@ -32,6 +35,8 @@ typedef struct program_params_t
     bool isEqualAxis;
     bool isNonDim;
     bool isRightSweepPedantic;
+    bool isMainProblemEnabled;
+    bool isFieldModelProblemEnabled;
 } ProgramParams;
 
 

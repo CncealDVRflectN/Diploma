@@ -1,4 +1,8 @@
 #include "Solution.h"
+#include "math_ext.h"
+
+
+static const std::string FIELD_MODEL_ACTION_KEY = "field-model";
 
 
 #pragma region Parameters parsing
@@ -140,6 +144,49 @@ void Solution::removeFieldActionForKey(const std::string& key)
     mField.removeActionForKey(key);
 }
 
+
+void Solution::fieldModelAction(const MagneticParams& params,
+                                const Matrix<double>& nextApprox,
+                                const Matrix<double>& curApprox,
+                                const SimpleTriangleGrid& grid)
+{
+    double b = 3.0 / (3.0 + params.chi);
+    double volume = M_PI * M_PI * M_PI;
+    double discrepancy = 0.0;
+    double maxDiscrepancy = 0.0;
+    arr_size_t gridRowsNum = grid.rowsNum();
+    arr_size_t gridColumnsNum = grid.columnsNum();
+    arr_size_t gridSurfaceColumnIndex = grid.surfaceColumnsIndex();
+
+    printf("\n=========================== FIELD DISCREPANCY ===========================\n");
+
+    for (arr_size_t i = gridRowsNum - 1; i >= 0; i--)
+    {
+        for (arr_size_t j = 0; j < gridSurfaceColumnIndex; j++)
+        {
+            discrepancy = std::abs(nextApprox(i, j) - b * grid(i, j).z);
+            maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+            printf("%.3e ", discrepancy);
+        }
+
+        discrepancy = std::abs(nextApprox(i, gridSurfaceColumnIndex) - b * grid(i, gridSurfaceColumnIndex).z);
+        maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+        printf("| %.3e | ", discrepancy);
+
+        for (arr_size_t j = gridSurfaceColumnIndex + 1; j < gridColumnsNum; j++)
+        {
+            double tmp = volume * std::pow(grid(i, j).r * grid(i, j).r + grid(i, j).z * grid(i, j).z, 1.5);
+            discrepancy = std::abs(nextApprox(i, j) - grid(i, j).z * (1.0 - (1.0 - b) / tmp));
+            maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+            printf("%.3e ", discrepancy);
+        }
+
+        printf("\n");
+    }
+
+    printf("\nMax discrepancy: %.3e \n\n", maxDiscrepancy);
+}
+
 #pragma endregion
 
 
@@ -154,7 +201,6 @@ void Solution::calcInitials()
     mFluid.calcInitialApproximation();
     mField.updateGrid(mFluid.lastValidResult());
     mField.calcInitialApproximation();
-    mField.calcRelaxation();
 
     mFluid.setDerivatives(calcDerivatives());
 
@@ -234,6 +280,40 @@ ResultCode Solution::calcNextResult()
 {
     double nextW = mCurW + mStepW;
     return calcResult(nextW);
+}
+
+
+ResultCode Solution::calcFieldModelProblem()
+{
+    ResultCode resultCode = INVALID_RESULT;
+
+    mFluid.setRelaxationParam(mParams.relaxationParamInitial);
+    mField.setRelaxationParam(mParams.fieldModelRelaxParamInitial);
+
+    mField.setChi(mParams.fieldModelChi);
+
+    mFluid.calcInitialApproximation();
+    mField.updateGrid(mFluid.lastValidResult());
+    mField.calcInitialApproximation();
+
+    mField.setActionForKey(FIELD_MODEL_ACTION_KEY, std::bind(&Solution::fieldModelAction, this, 
+                                                             std::placeholders::_1, std::placeholders::_2, 
+                                                             std::placeholders::_3, std::placeholders::_4));
+
+    while (resultCode != FIELD_SUCCESS && 
+           mField.currentRelaxationParam() >= mParams.fieldModelRelaxParamMin)
+    {
+        resultCode = mField.calcRelaxation();
+
+        if (resultCode != FIELD_SUCCESS)
+        {
+            mField.setRelaxationParam(0.5 * mFluid.currentRelaxationParam());
+        }
+    }
+
+    mField.removeActionForKey(FIELD_MODEL_ACTION_KEY);
+
+    return resultCode;
 }
 
 #pragma endregion

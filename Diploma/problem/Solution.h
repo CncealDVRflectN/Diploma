@@ -14,9 +14,12 @@ typedef struct problem_params_t
 	double relaxationParamMin;
     double fieldRelaxParamInitial;
 	double fieldRelaxParamMin;
+    double fieldModelRelaxParamInitial;
+    double fieldModelRelaxParamMin;
 	double accuracy;
 	double fieldAccuracy;
 	double chi;
+    double fieldModelChi;
 	int splitsNum;
 	int iterationsMaxNum;
 	int fieldIterationsMaxNum;
@@ -63,6 +66,8 @@ public:
 
 	ResultCode calcNextResult();
 
+    ResultCode calcFieldModelProblem();
+
 private:
     ProblemParams mParams;
 
@@ -80,6 +85,11 @@ private:
 	void updateLastValidResults();
 
 	Array<Vector2<double>> calcDerivatives() const;
+
+    void fieldModelAction(const MagneticParams& params,
+                          const Matrix<double>& nextApprox,
+                          const Matrix<double>& curApprox,
+                          const SimpleTriangleGrid& grid);
 
 	bool isAccuracyReached() const;
 };
