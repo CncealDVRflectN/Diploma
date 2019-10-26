@@ -1,58 +1,103 @@
 #include "PlotLines.h"
+#include <vtkMeta.h>
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
+#include <vtkContextView.h>
+#include <vtkChartXY.h>
+#include <vtkPlot.h>
+#include <vtkRenderer.h>
+#include <vtkContextScene.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkAxis.h>
+#include <vtkTextProperty.h>
+#include <vtkStdString.h>
+#include <vtkFXAAOptions.h>
 
 
-#pragma region Constructors
-
-PlotLines::PlotLines(const PlotLinesParams& params) : mParams(params), mPipe(GNUPLOT, PIPE_WRITE)
-{}
-
-#pragma endregion
-
-
-#pragma region Member methods
-
-void PlotLines::plot(const std::vector<PlotLine>& lines)
+vtkSmartPointer<vtkContextView> setupContextView(const PlotLinesParams& plotParams)
 {
-    const size_t linesNum = lines.size();
+    vtkSmartPointer<vtkContextView> view = vtkSmartPointer<vtkContextView>::New();
 
-    assert_message(linesNum > 0, "Cannot plot lines, there is no lines");
+    vtkSmartPointer<vtkRenderWindow> window = view->GetRenderWindow();
+    window->SetSize(plotParams.windowWidth, plotParams.windowHeight);
+    window->SetMultiSamples(8);
 
-    mPipe.write("set term wxt size %d, %d enhanced\n", mParams.windowWidth, mParams.windowHeight);
-    mPipe.write("set title \"%s\"\n", mParams.title.c_str());
-    mPipe.write("set xlabel \"%s\"\n", mParams.labelX.c_str());
-    mPipe.write("set ylabel \"%s\"\n", mParams.labelY.c_str());
+    vtkSmartPointer<vtkRenderer> renderer = view->GetRenderer();
+    renderer->SetBackground(plotParams.backgroundColor.GetRed(), 
+                            plotParams.backgroundColor.GetGreen(), 
+                            plotParams.backgroundColor.GetBlue());
+    
+    return view;
+}
 
-    if (mParams.isEqualAxis)
-    {
-        mPipe.write("set size ratio -1\n");
-    }
 
-    mPipe.write("plot '-' with lines title '%s'", lines[0].title.c_str());
-    for (size_t i = 1; i < linesNum; i++)
-    {
-        mPipe.write(", '-' with lines title '%s'", lines[i].title.c_str());
-    }
-    mPipe.write("\n");
+void setupAxis(vtkSmartPointer<vtkAxis> axis, const PlotLinesParams& plotParams, const std::string& title)
+{
+    vtkSmartPointer<vtkTextProperty> textProperties = axis->GetTitleProperties();
+    textProperties->SetFontSize(plotParams.axisLabelsFontSize);
 
+    axis->SetTitle(title);
+}
+
+
+vtkSmartPointer<vtkChartXY> setupChart(const PlotLinesParams& plotParams)
+{
+    vtkSmartPointer<vtkChartXY> chart = vtkSmartPointer<vtkChartXY>::New();
+    chart->SetTitle(plotParams.title);
+
+    vtkSmartPointer<vtkTextProperty> titleTextProperties = chart->GetTitleProperties();
+    titleTextProperties->SetFontSize(plotParams.titleFontSize);
+
+    setupAxis(chart->GetAxis(vtkAxis::BOTTOM), plotParams, plotParams.labelX);
+    setupAxis(chart->GetAxis(vtkAxis::LEFT), plotParams, plotParams.labelY);
+
+    return chart;
+}
+
+
+void setupData(vtkSmartPointer<vtkChartXY> chart, const std::vector<PlotLine>& lines)
+{
     for (const PlotLine& line : lines)
     {
-        const Array<Vector2<double>>& points = line.points;
-        const arr_size_t pointsNum = points.size();
+        vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
 
-        for (const Vector2<double>& point : points)
+        vtkSmartPointer<vtkFloatArray> arrX = vtkSmartPointer<vtkFloatArray>::New();
+        arrX->SetName("X");
+        table->AddColumn(arrX);
+
+        vtkSmartPointer<vtkFloatArray> arrY = vtkSmartPointer<vtkFloatArray>::New();
+        arrY->SetName("Y");
+        table->AddColumn(arrY);
+
+        table->SetNumberOfRows(line.points.size());
+
+        int rowIndex = 0;
+        for (const Vector2<double>& point : line.points)
         {
-            mPipe.write("%lf %lf\n", point.r, point.z);
+            table->SetValue(rowIndex, 0, point.x);
+            table->SetValue(rowIndex, 1, point.y);
+            rowIndex++;
         }
 
-        mPipe.write("e\n");
-        mPipe.flush();
+        vtkPlot* linePlot = chart->AddPlot(vtkChart::LINE);
+        linePlot->SetInputData(table, 0, 1);
+        linePlot->SetColor(line.color.GetRed(), line.color.GetGreen(), line.color.GetBlue(), line.color.GetAlpha());
+        linePlot->SetWidth(line.width);
+        linePlot->SetLabel(line.title);
     }
 }
 
 
-void PlotLines::close()
+void plot(const PlotLinesParams& plotParams, const std::vector<PlotLine>& lines)
 {
-    mPipe.close();
-}
+    vtkSmartPointer<vtkContextView> view = setupContextView(plotParams);
+    vtkSmartPointer<vtkChartXY> chart = setupChart(plotParams);
+    view->GetScene()->AddItem(chart);
 
-#pragma endregion
+    setupData(chart, lines);
+
+    view->GetRenderWindow()->Render();
+    view->GetInteractor()->Initialize();
+    view->GetInteractor()->Start();
+}

@@ -1,6 +1,6 @@
-﻿cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required(VERSION 3.8)
 
-project ("Diploma")
+project("Diploma")
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -64,4 +64,4 @@ else()
     endif()
 endif()
 
-add_subdirectory ("Diploma")
+add_subdirectory("Diploma")
