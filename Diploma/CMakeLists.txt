@@ -1,10 +1,11 @@
 ﻿cmake_minimum_required (VERSION 3.8)
 
-include_directories(plots 
-					problem 
-                    problem/grids
-					util)
 
-file(GLOB_RECURSE proj_sources *.cpp)
+file(GLOB_RECURSE _proj_sources *.cpp)
 
-add_executable (Diploma ${proj_sources})
+add_executable (Diploma ${_proj_sources})
+
+target_include_directories(Diploma PUBLIC plots 
+					                      problem 
+                                          problem/grids
+					                      util)

@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include "files_util.h"
 #include "ProgramOptsHandler.h"
 
 
@@ -148,6 +149,10 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
 int main(int argc, char** argv)
 {
     ProgramOptsHandler optsHandler;
+
+    printf("Clearing intermediate files...\n");
+    clear_intermediate_files();
+    printf("Intermediate files cleared\n\n");
 
     printf("Parsing options...\n");
     optsHandler.parseOpts(argc, argv);
