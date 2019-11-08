@@ -7,34 +7,36 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include "Matrix.h"
 
 
 static const char COMMENT_CHARACTER = '#';
-static const unsigned int COLUMN_WIDTH = 15;
+static const unsigned int COLUMN_WIDTH = 20;
 
 static const std::string OUTPUT_DIR_NAME = "output";
 static const std::string INTERMEDIATE_DIR_NAME = "intermediate";
 
 
-typedef struct fluid_params_output_t
+typedef struct fluid_result_params_t
 {
     std::string xLabel;
     std::string yLabel;
     double chi;
     double w;
-} FluidParamsOutput;
+} FluidResultParams;
 
 
-typedef struct field_params_output_t
+typedef struct field_result_params_t
 {
     std::string xLabel;
     std::string yLabel;
+    std::string potentialLabel;
     double chi;
     int surfaceSplitsNum;
     int internalSplitsNum;
     int externalSplitsNum;
-} FieldParamsOutput;
+} FieldResultParams;
 
 
 #pragma region Paths generation
@@ -100,7 +102,9 @@ static std::string generate_file_postfix(const std::string& delimiter, const T& 
                   std::is_same<T, char*>::value ||
                   std::is_same<T, const char*>::value)
     {
-        result += param;
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(3) << param;
+        result += stream.str();
     }
     else
     {
@@ -183,13 +187,18 @@ inline void write_comment_line(std::ofstream& output, unsigned int columnWidth, 
 
 
 static void write_fluid_data(const std::filesystem::path& path,
-                             const FluidParamsOutput& fluidParams,
-                             const Array<Vector2<double>>& points)
+                             const FluidResultParams& fluidParams,
+                             const Array<Vector2<double>>& points) noexcept(false)
 {
     std::ofstream output(path);
 
-    write_comment_line(output, COLUMN_WIDTH, "Chi", "W");
-    write_comment_line(output, COLUMN_WIDTH, fluidParams.chi, fluidParams.w);
+    if (!output.good())
+    {
+        throw std::runtime_error("Cannot write data to file: " + path.string());
+    }
+
+    write_comment_line(output, COLUMN_WIDTH, "Chi", "W", "X label", "Y label");
+    write_comment_line(output, COLUMN_WIDTH, fluidParams.chi, fluidParams.w, fluidParams.xLabel, fluidParams.yLabel);
     write_comment_line(output, COLUMN_WIDTH, "########");
     write_comment_line(output, COLUMN_WIDTH, fluidParams.xLabel, fluidParams.yLabel);
 
@@ -203,29 +212,49 @@ static void write_fluid_data(const std::filesystem::path& path,
 }
 
 
-inline void write_fluid_data(const FluidParamsOutput& fluidParams, const Array<Vector2<double>>& points)
+inline std::filesystem::path write_fluid_data(const FluidResultParams& fluidParams, 
+                                              const Array<Vector2<double>>& points)
 {
     std::string fileName = generate_file_name("fluid", "dat", fluidParams.chi, fluidParams.w);
     std::filesystem::path outputPath = intermediate_file_path(fileName);
 
     write_fluid_data(outputPath, fluidParams, points);
+
+    return outputPath;
 }
 
 
 static void write_field_data(const std::filesystem::path& path,
-                             const FieldParamsOutput& fieldParams,
+                             const FieldResultParams& fieldParams,
                              const Matrix<Vector2<double>>& points,
-                             const Matrix<double>& field)
+                             const Matrix<double>& field) noexcept(false)
 {
     std::ofstream output(path);
+
+    if (!output.good())
+    {
+        throw std::runtime_error("Cannot write data to file: " + path.string());
+    }
 
     arr_size_t rowsNum = points.rowsNum();
     arr_size_t columnsNum = points.columnsNum();
 
-    write_comment_line(output, COLUMN_WIDTH, "Chi");
-    write_comment_line(output, COLUMN_WIDTH, fieldParams.chi);
+    write_comment_line(output, COLUMN_WIDTH, "Chi", 
+                                             "Surface splits", 
+                                             "Internal splits", 
+                                             "External splits", 
+                                             "X Label", 
+                                             "Y Label", 
+                                             "Potential label");
+    write_comment_line(output, COLUMN_WIDTH, fieldParams.chi, 
+                                             fieldParams.surfaceSplitsNum, 
+                                             fieldParams.internalSplitsNum, 
+                                             fieldParams.externalSplitsNum, 
+                                             fieldParams.xLabel, 
+                                             fieldParams.yLabel, 
+                                             fieldParams.potentialLabel);
     write_comment_line(output, COLUMN_WIDTH, "########");
-    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel, "field");
+    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel, fieldParams.potentialLabel);
 
     for (arr_size_t i = 0; i < rowsNum; i++)
     {
@@ -240,31 +269,50 @@ static void write_field_data(const std::filesystem::path& path,
 }
 
 
-inline void write_field_data(const FieldParamsOutput& fieldParams,
-                             const Matrix<Vector2<double>>& points,
-                             const Matrix<double>& field)
+inline std::filesystem::path write_field_data(const FieldResultParams& fieldParams,
+                                              const Matrix<Vector2<double>>& points,
+                                              const Matrix<double>& field)
 {
     std::string fileName = generate_file_name("field", "dat", fieldParams.chi);
     std::filesystem::path outputPath = intermediate_file_path(fileName);
 
     write_field_data(outputPath, fieldParams, points, field);
+
+    return outputPath;
 }
 
 
 static void write_internal_grid_data(const std::filesystem::path& path,
-                                     const FieldParamsOutput& fieldParams,
-                                     const Matrix<Vector2<double>>& points)
+                                     const FieldResultParams& fieldParams,
+                                     const Matrix<Vector2<double>>& points) noexcept(false)
 {
     std::ofstream output(path);
+
+    if (!output.good())
+    {
+        throw std::runtime_error("Cannot write data to file: " + path.string());
+    }
 
     arr_size_t rowsNum = points.rowsNum();
     arr_size_t columnsNum = points.columnsNum();
     arr_size_t surfaceColumnIndex = fieldParams.internalSplitsNum;
 
-    write_comment_line(output, COLUMN_WIDTH, "Chi");
-    write_comment_line(output, COLUMN_WIDTH, fieldParams.chi);
+    write_comment_line(output, COLUMN_WIDTH, "Chi",
+                                             "Surface splits",
+                                             "Internal splits",
+                                             "External splits",
+                                             "X Label",
+                                             "Y Label",
+                                             "Potential label");
+    write_comment_line(output, COLUMN_WIDTH, fieldParams.chi,
+                                             fieldParams.surfaceSplitsNum,
+                                             fieldParams.internalSplitsNum,
+                                             fieldParams.externalSplitsNum,
+                                             fieldParams.xLabel,
+                                             fieldParams.yLabel,
+                                             fieldParams.potentialLabel);
     write_comment_line(output, COLUMN_WIDTH, "########");
-    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel);
+    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel, fieldParams.potentialLabel);
 
     for (arr_size_t i = 0; i < rowsNum; i++)
     {
@@ -293,30 +341,49 @@ static void write_internal_grid_data(const std::filesystem::path& path,
 }
 
 
-inline void write_internal_grid_data(const FieldParamsOutput& fieldParams,
-                                     const Matrix<Vector2<double>>& points)
+inline std::filesystem::path write_internal_grid_data(const FieldResultParams& fieldParams,
+                                                      const Matrix<Vector2<double>>& points)
 {
     std::string fileName = generate_file_name("grid", "dat", "internal", fieldParams.chi);
     std::filesystem::path outputPath = intermediate_file_path(fileName);
 
     write_internal_grid_data(outputPath, fieldParams, points);
+
+    return outputPath;
 }
 
 
 static void write_external_grid_data(const std::filesystem::path& path,
-                                     const FieldParamsOutput& fieldParams,
-                                     const Matrix<Vector2<double>>& points)
+                                     const FieldResultParams& fieldParams,
+                                     const Matrix<Vector2<double>>& points) noexcept(false)
 {
     std::ofstream output(path);
+
+    if (!output.good())
+    {
+        throw std::runtime_error("Cannot write data to file: " + path.string());
+    }
 
     arr_size_t rowsNum = points.rowsNum();
     arr_size_t columnsNum = points.columnsNum();
     arr_size_t surfaceColumnIndex = fieldParams.internalSplitsNum;
 
-    write_comment_line(output, COLUMN_WIDTH, "Chi");
-    write_comment_line(output, COLUMN_WIDTH, fieldParams.chi);
+    write_comment_line(output, COLUMN_WIDTH, "Chi",
+                                             "Surface splits",
+                                             "Internal splits",
+                                             "External splits",
+                                             "X Label",
+                                             "Y Label",
+                                             "Potential label");
+    write_comment_line(output, COLUMN_WIDTH, fieldParams.chi,
+                                             fieldParams.surfaceSplitsNum,
+                                             fieldParams.internalSplitsNum,
+                                             fieldParams.externalSplitsNum,
+                                             fieldParams.xLabel,
+                                             fieldParams.yLabel,
+                                             fieldParams.potentialLabel);
     write_comment_line(output, COLUMN_WIDTH, "########");
-    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel);
+    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel, fieldParams.potentialLabel);
 
     for (arr_size_t i = 0; i < rowsNum; i++)
     {
@@ -345,13 +412,64 @@ static void write_external_grid_data(const std::filesystem::path& path,
 }
 
 
-inline void write_external_grid_data(const FieldParamsOutput& fieldParams,
-                                     const Matrix<Vector2<double>>& points)
+inline std::filesystem::path write_external_grid_data(const FieldResultParams& fieldParams,
+                                                      const Matrix<Vector2<double>>& points)
 {
     std::string fileName = generate_file_name("grid", "dat", "external", fieldParams.chi);
     std::filesystem::path outputPath = intermediate_file_path(fileName);
 
     write_external_grid_data(outputPath, fieldParams, points);
+
+    return outputPath;
+}
+
+#pragma endregion
+
+
+#pragma region Read data
+
+static FluidResultParams read_fluid_params(const std::filesystem::path& path) noexcept(false)
+{
+    std::ifstream input(path);
+
+    if (!input.good())
+    {
+        throw std::runtime_error("Cannot read data from file :" + path.string());
+    }
+
+    FluidResultParams result;
+
+    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skipping first header line
+    input.ignore(std::numeric_limits<std::streamsize>::max(), COMMENT_CHARACTER); // skipping comment characters
+
+    input >> result.chi >> result.w >> result.xLabel >> result.yLabel;
+
+    input.close();
+
+    return result;
+}
+
+
+static FieldResultParams read_field_params(const std::filesystem::path& path) noexcept(false)
+{
+    std::ifstream input(path);
+
+    if (!input.good())
+    {
+        throw std::runtime_error("Cannot read data from file :" + path.string());
+    }
+
+    FieldResultParams result;
+
+    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skipping first header line
+    input.ignore(std::numeric_limits<std::streamsize>::max(), COMMENT_CHARACTER); // skipping comment characters
+
+    input >> result.chi >> result.surfaceSplitsNum >> result.internalSplitsNum 
+          >> result.externalSplitsNum >> result.xLabel >> result.yLabel >> result.potentialLabel;
+
+    input.close();
+
+    return result;
 }
 
 #pragma endregion
