@@ -4,7 +4,7 @@
 #include <iostream>
 
 
-enum PipeAccessType
+enum class PipeAccessType
 {
     PIPE_WRITE
 };
@@ -13,6 +13,8 @@ enum PipeAccessType
 class Pipe
 {
 public:
+    Pipe(const std::string& pipeName, PipeAccessType accessType);
+
     Pipe(const char* const pipeName, PipeAccessType accessType);
 
     ~Pipe();

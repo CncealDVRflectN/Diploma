@@ -7,7 +7,7 @@
 SimpleTriangleGrid::SimpleTriangleGrid(const STGridParams& params) 
     : mParams(params), 
       mSurfaceColumnIndex(params.internalSplitsNum), 
-      mPoints(params.surfaceSplitsNum + 1, params.internalSplitsNum + params.infSplitsNum + 1)
+      mPoints(params.surfaceSplitsNum + 1, params.internalSplitsNum + params.externalSplitsNum + 1)
 {}
 
 #pragma endregion

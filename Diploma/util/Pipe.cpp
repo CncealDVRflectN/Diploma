@@ -8,13 +8,17 @@ static const char * const ACCESS_TYPE_WRITE = "w";
 
 #pragma region Constructors and destructors
 
+Pipe::Pipe(const std::string& pipeName, PipeAccessType accessType) : Pipe(pipeName.c_str(), accessType)
+{}
+
+
 Pipe::Pipe(const char* const pipeName, PipeAccessType accessType)
 {
     const char* accessTypeStr = nullptr;
 
     switch (accessType)
     {
-    case PIPE_WRITE:
+    case PipeAccessType::PIPE_WRITE:
         accessTypeStr = ACCESS_TYPE_WRITE;
         break;
     default:

@@ -1,8 +1,9 @@
 #ifndef DIPLOMA_FILES_UTIL_H
 #define DIPLOMA_FILES_UTIL_H
 
-#define SIGNED_ARR_SIZE // required for reverse loops such as for(arr_size_t i = something; i >= 0; i--),
-                        // or you should wrap these loops in #ifdef SIGNED_ARR_SIZE, but that will reduce code readability
+#define SIGNED_ARR_SIZE // required for simple reverse loops such as for(arr_size_t i = something; i >= 0; i--),
+                        // or you should wrap these loops in #ifdef SIGNED_ARR_SIZE and add version for unsigned type, 
+                        // but that will reduce code readability
 
 #include <string>
 #include <filesystem>
@@ -11,11 +12,14 @@
 #include "Matrix.h"
 
 
-static const char COMMENT_CHARACTER = '#';
-static const unsigned int COLUMN_WIDTH = 20;
+const char COMMENT_CHARACTER = '#';
+const unsigned int COLUMN_WIDTH = 20;
+const unsigned int DATA_LINE_OFFSET = 1;
 
-static const std::string OUTPUT_DIR_NAME = "output";
-static const std::string INTERMEDIATE_DIR_NAME = "intermediate";
+const std::string OUTPUT_DIR_NAME = "output";
+const std::string INTERMEDIATE_DIR_NAME = "intermediate";
+const std::string RESOURCES_DIR_NAME = "resources";
+const std::string PLOT_CONFIGS_DIR_NAME = "plot-configs";
 
 
 typedef struct fluid_result_params_t
@@ -24,6 +28,7 @@ typedef struct fluid_result_params_t
     std::string yLabel;
     double chi;
     double w;
+    bool isDimensionless;
 } FluidResultParams;
 
 
@@ -32,10 +37,14 @@ typedef struct field_result_params_t
     std::string xLabel;
     std::string yLabel;
     std::string potentialLabel;
+    double potentialMin;
+    double potentialMax;
+    double fluidTopPotential;
     double chi;
     int surfaceSplitsNum;
     int internalSplitsNum;
     int externalSplitsNum;
+    bool isDimensionless;
 } FieldResultParams;
 
 
@@ -70,6 +79,30 @@ inline std::filesystem::path intermediate_path()
 inline std::filesystem::path intermediate_file_path(const std::string& fileName)
 {
     return intermediate_path() / fileName;
+}
+
+
+inline std::filesystem::path resources_path()
+{
+    return std::filesystem::current_path() / RESOURCES_DIR_NAME;
+}
+
+
+inline std::filesystem::path resource_path(const std::string& resourceName)
+{
+    return resources_path() / resourceName;
+}
+
+
+inline std::filesystem::path plot_configs_path()
+{
+    return resources_path() / PLOT_CONFIGS_DIR_NAME;
+}
+
+
+inline std::filesystem::path plot_config_path(const std::string& plotConfig)
+{
+    return plot_configs_path() / plotConfig;
 }
 
 #pragma endregion
@@ -122,20 +155,21 @@ static std::string generate_file_postfix(const std::string& delimiter, const T& 
 }
 
 
-template <typename... Args>
-inline std::string generate_file_name(const std::string& prefix, 
-                                      const std::string& delimiter, 
-                                      const std::string& extension, 
-                                      Args... params)
+inline std::string generate_file_name(const std::string& prefix,
+                                      const std::string& extension,
+                                      const std::string& delimiter)
 {
-    return prefix + generate_file_postfix(delimiter, params...) + "." + extension;
+    return prefix + '.' + extension;
 }
 
 
 template <typename... Args>
-inline std::string generate_file_name(const std::string& prefix, const std::string& extension, Args... params)
+inline std::string generate_file_name(const std::string& prefix, 
+                                      const std::string& extension, 
+                                      const std::string& delimiter, 
+                                      Args... params)
 {
-    return generate_file_name(prefix, "-", extension, params...);
+    return prefix + generate_file_postfix(delimiter, params...) + '.' + extension;
 }
 
 #pragma endregion
@@ -144,45 +178,70 @@ inline std::string generate_file_name(const std::string& prefix, const std::stri
 #pragma region Write data
 
 template <typename T>
-inline void write_data(std::ofstream& output, char fill, unsigned int width, const T& param)
+inline std::ofstream& write_data(std::ofstream& output, char fill, unsigned int width, const T& param)
 {
     output << std::setfill(fill)
            << std::left
            << std::setw(width)
            << std::fixed
-           << std::setprecision(8)
+           << std::scientific
+           << std::boolalpha
            << param;
+
+    return output;
 }
 
 
 template <typename T, typename... Args>
-static void write_data(std::ofstream& output, char fill, unsigned int columnWidth, const T& param, Args... params)
+static std::ofstream& write_data(std::ofstream& output, char fill, unsigned int columnWidth, const T& param, Args... params)
 {
     write_data(output, fill, columnWidth, param);
     write_data(output, fill, columnWidth, params...);
+
+    return output;
 }
 
 
 template <typename... Args>
-static void write_data(std::ofstream& output, unsigned int columnWidth, Args... params)
+static std::ofstream& write_data(std::ofstream& output, unsigned int columnWidth, Args... params)
 {
     write_data(output, ' ', columnWidth, params...);
+
+    return output;
 }
 
 
 template <typename... Args>
-inline void write_data_line(std::ofstream& output, unsigned int columnWidth, Args... params)
+inline std::ofstream& write_data_line(std::ofstream& output, unsigned int columnWidth, Args... params)
 {
     write_data(output, columnWidth, params...);
     output << std::endl;
+
+    return output;
 }
 
 
 template <typename... Args>
-inline void write_comment_line(std::ofstream& output, unsigned int columnWidth, Args... params)
+inline std::ofstream& write_offsetted_data_line(std::ofstream& output, unsigned int offset, unsigned int columnWidth, Args... params)
+{
+    for (unsigned int i = 0U; i < offset; i++)
+    {
+        output << ' ';
+    }
+
+    write_data_line(output, columnWidth, params...);
+
+    return output;
+}
+
+
+template <typename... Args>
+inline std::ofstream& write_comment_line(std::ofstream& output, unsigned int columnWidth, Args... params)
 {
     output << COMMENT_CHARACTER;
     write_data_line(output, columnWidth, params...);
+
+    return output;
 }
 
 
@@ -197,14 +256,18 @@ static void write_fluid_data(const std::filesystem::path& path,
         throw std::runtime_error("Cannot write data to file: " + path.string());
     }
 
-    write_comment_line(output, COLUMN_WIDTH, "Chi", "W", "X label", "Y label");
-    write_comment_line(output, COLUMN_WIDTH, fluidParams.chi, fluidParams.w, fluidParams.xLabel, fluidParams.yLabel);
-    write_comment_line(output, COLUMN_WIDTH, "########");
+    write_comment_line(output, COLUMN_WIDTH, "Chi", "W", "Dimensionless", "X label", "Y label");
+    write_comment_line(output, COLUMN_WIDTH, fluidParams.chi, 
+                                             fluidParams.w, 
+                                             fluidParams.isDimensionless,
+                                             fluidParams.xLabel, 
+                                             fluidParams.yLabel);
+    write_data(output, '#', 5 * COLUMN_WIDTH, "") << std::endl;
     write_comment_line(output, COLUMN_WIDTH, fluidParams.xLabel, fluidParams.yLabel);
 
     for (Vector2<double> point : points)
     {
-        write_data_line(output, COLUMN_WIDTH, point.x, point.y);
+        write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, point.x, point.y);
     }
 
     output.flush();
@@ -215,7 +278,7 @@ static void write_fluid_data(const std::filesystem::path& path,
 inline std::filesystem::path write_fluid_data(const FluidResultParams& fluidParams, 
                                               const Array<Vector2<double>>& points)
 {
-    std::string fileName = generate_file_name("fluid", "dat", fluidParams.chi, fluidParams.w);
+    std::string fileName = generate_file_name("fluid", "dat", "-", fluidParams.chi, fluidParams.w);
     std::filesystem::path outputPath = intermediate_file_path(fileName);
 
     write_fluid_data(outputPath, fluidParams, points);
@@ -243,6 +306,10 @@ static void write_field_data(const std::filesystem::path& path,
                                              "Surface splits", 
                                              "Internal splits", 
                                              "External splits", 
+                                             "Potential min", 
+                                             "Potential max", 
+                                             "Fluid top potential", 
+                                             "Dimensionless", 
                                              "X Label", 
                                              "Y Label", 
                                              "Potential label");
@@ -250,17 +317,21 @@ static void write_field_data(const std::filesystem::path& path,
                                              fieldParams.surfaceSplitsNum, 
                                              fieldParams.internalSplitsNum, 
                                              fieldParams.externalSplitsNum, 
+                                             fieldParams.potentialMin, 
+                                             fieldParams.potentialMax, 
+                                             fieldParams.fluidTopPotential, 
+                                             fieldParams.isDimensionless, 
                                              fieldParams.xLabel, 
                                              fieldParams.yLabel, 
                                              fieldParams.potentialLabel);
-    write_comment_line(output, COLUMN_WIDTH, "########");
+    write_data(output, '#', 11 * COLUMN_WIDTH, "") << std::endl;
     write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel, fieldParams.potentialLabel);
 
     for (arr_size_t i = 0; i < rowsNum; i++)
     {
         for (arr_size_t j = 0; j < columnsNum; j++)
         {
-            write_data_line(output, COLUMN_WIDTH, points(i, j).x, points(i, j).y, field(i, j));
+            write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i, j).x, points(i, j).y, field(i, j));
         }
     }
 
@@ -273,7 +344,7 @@ inline std::filesystem::path write_field_data(const FieldResultParams& fieldPara
                                               const Matrix<Vector2<double>>& points,
                                               const Matrix<double>& field)
 {
-    std::string fileName = generate_file_name("field", "dat", fieldParams.chi);
+    std::string fileName = generate_file_name("field", "dat", "-", fieldParams.chi);
     std::filesystem::path outputPath = intermediate_file_path(fileName);
 
     write_field_data(outputPath, fieldParams, points, field);
@@ -300,37 +371,37 @@ static void write_internal_grid_data(const std::filesystem::path& path,
     write_comment_line(output, COLUMN_WIDTH, "Chi",
                                              "Surface splits",
                                              "Internal splits",
-                                             "External splits",
+                                             "External splits", 
+                                             "Dimensionless", 
                                              "X Label",
-                                             "Y Label",
-                                             "Potential label");
+                                             "Y Label");
     write_comment_line(output, COLUMN_WIDTH, fieldParams.chi,
                                              fieldParams.surfaceSplitsNum,
                                              fieldParams.internalSplitsNum,
-                                             fieldParams.externalSplitsNum,
+                                             fieldParams.externalSplitsNum, 
+                                             fieldParams.isDimensionless, 
                                              fieldParams.xLabel,
-                                             fieldParams.yLabel,
-                                             fieldParams.potentialLabel);
-    write_comment_line(output, COLUMN_WIDTH, "########");
-    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel, fieldParams.potentialLabel);
+                                             fieldParams.yLabel);
+    write_data(output, '#', 7 * COLUMN_WIDTH, "") << std::endl;
+    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel);
 
     for (arr_size_t i = 0; i < rowsNum; i++)
     {
         for (arr_size_t j = 0; j <= surfaceColumnIndex; j++)
         {
-            write_data_line(output, COLUMN_WIDTH, points(i, j).x, points(i, j).y);
+            write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i, j).x, points(i, j).y);
 
             if (i != rowsNum - 1 && j != surfaceColumnIndex)
             {
-                write_data_line(output, COLUMN_WIDTH, points(i + 1, j).x, points(i + 1, j).y);
-                write_data_line(output, COLUMN_WIDTH, points(i, j + 1).x, points(i, j + 1).y);
-                write_data_line(output, COLUMN_WIDTH, points(i, j).x, points(i, j).y);
+                write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i + 1, j).x, points(i + 1, j).y);
+                write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i, j + 1).x, points(i, j + 1).y);
+                write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i, j).x, points(i, j).y);
             }
             else if (i != rowsNum - 1)
             {
                 for (arr_size_t k = surfaceColumnIndex; k >= 0; k--)
                 {
-                    write_data_line(output, COLUMN_WIDTH, points(i + 1, k).x, points(i + 1, k).y);
+                    write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i + 1, k).x, points(i + 1, k).y);
                 }
             }
         }
@@ -344,7 +415,7 @@ static void write_internal_grid_data(const std::filesystem::path& path,
 inline std::filesystem::path write_internal_grid_data(const FieldResultParams& fieldParams,
                                                       const Matrix<Vector2<double>>& points)
 {
-    std::string fileName = generate_file_name("grid", "dat", "internal", fieldParams.chi);
+    std::string fileName = generate_file_name("grid", "dat", "-", "internal", fieldParams.chi);
     std::filesystem::path outputPath = intermediate_file_path(fileName);
 
     write_internal_grid_data(outputPath, fieldParams, points);
@@ -371,37 +442,37 @@ static void write_external_grid_data(const std::filesystem::path& path,
     write_comment_line(output, COLUMN_WIDTH, "Chi",
                                              "Surface splits",
                                              "Internal splits",
-                                             "External splits",
+                                             "External splits", 
+                                             "Dimensionless", 
                                              "X Label",
-                                             "Y Label",
-                                             "Potential label");
+                                             "Y Label");
     write_comment_line(output, COLUMN_WIDTH, fieldParams.chi,
                                              fieldParams.surfaceSplitsNum,
                                              fieldParams.internalSplitsNum,
-                                             fieldParams.externalSplitsNum,
+                                             fieldParams.externalSplitsNum, 
+                                             fieldParams.isDimensionless, 
                                              fieldParams.xLabel,
-                                             fieldParams.yLabel,
-                                             fieldParams.potentialLabel);
-    write_comment_line(output, COLUMN_WIDTH, "########");
-    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel, fieldParams.potentialLabel);
+                                             fieldParams.yLabel);
+    write_data(output, '#', 7 * COLUMN_WIDTH, "") << std::endl;
+    write_comment_line(output, COLUMN_WIDTH, fieldParams.xLabel, fieldParams.yLabel);
 
     for (arr_size_t i = 0; i < rowsNum; i++)
     {
         for (arr_size_t j = surfaceColumnIndex; j < columnsNum; j++)
         {
-            write_data_line(output, COLUMN_WIDTH, points(i, j).x, points(i, j).y);
+            write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i, j).x, points(i, j).y);
 
             if (i != rowsNum - 1 && j != columnsNum - 1)
             {
-                write_data_line(output, COLUMN_WIDTH, points(i + 1, j).x, points(i + 1, j).y);
-                write_data_line(output, COLUMN_WIDTH, points(i, j + 1).x, points(i, j + 1).y);
-                write_data_line(output, COLUMN_WIDTH, points(i, j).x, points(i, j).y);
+                write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i + 1, j).x, points(i + 1, j).y);
+                write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i, j + 1).x, points(i, j + 1).y);
+                write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i, j).x, points(i, j).y);
             }
             else if (i != rowsNum - 1)
             {
                 for (arr_size_t k = columnsNum - 1; k >= surfaceColumnIndex; k--)
                 {
-                    write_data_line(output, COLUMN_WIDTH, points(i + 1, k).x, points(i + 1, k).y);
+                    write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i + 1, k).x, points(i + 1, k).y);
                 }
             }
         }
@@ -415,10 +486,47 @@ static void write_external_grid_data(const std::filesystem::path& path,
 inline std::filesystem::path write_external_grid_data(const FieldResultParams& fieldParams,
                                                       const Matrix<Vector2<double>>& points)
 {
-    std::string fileName = generate_file_name("grid", "dat", "external", fieldParams.chi);
+    std::string fileName = generate_file_name("grid", "dat", "-", "external", fieldParams.chi);
     std::filesystem::path outputPath = intermediate_file_path(fileName);
 
     write_external_grid_data(outputPath, fieldParams, points);
+
+    return outputPath;
+}
+
+
+static void write_height_coefs_data(const std::filesystem::path& path, 
+                                    double chi, 
+                                    const std::vector<Vector2<double>>& coefs)
+{
+    std::ofstream output(path);
+
+    if (!output.good())
+    {
+        throw std::runtime_error("Cannot write data to file: " + path.string());
+    }
+
+    write_comment_line(output, COLUMN_WIDTH, "Chi");
+    write_comment_line(output, COLUMN_WIDTH, chi);
+    write_data(output, '#', COLUMN_WIDTH, "") << std::endl;
+    write_comment_line(output, COLUMN_WIDTH, "W", "k");
+
+    for (Vector2<double> coef : coefs)
+    {
+        write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, coef.x, coef.y);
+    }
+
+    output.flush();
+    output.close();
+}
+
+
+inline std::filesystem::path write_height_coefs_data(double chi, const std::vector<Vector2<double>>& coefs)
+{
+    std::string fileName = generate_file_name("height-coefs", "dat", "-", chi);
+    std::filesystem::path outputPath = intermediate_file_path(fileName);
+
+    write_height_coefs_data(outputPath, chi, coefs);
 
     return outputPath;
 }
@@ -434,7 +542,7 @@ static FluidResultParams read_fluid_params(const std::filesystem::path& path) no
 
     if (!input.good())
     {
-        throw std::runtime_error("Cannot read data from file :" + path.string());
+        throw std::runtime_error("Cannot read data from file: " + path.string());
     }
 
     FluidResultParams result;
@@ -442,7 +550,9 @@ static FluidResultParams read_fluid_params(const std::filesystem::path& path) no
     input.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skipping first header line
     input.ignore(std::numeric_limits<std::streamsize>::max(), COMMENT_CHARACTER); // skipping comment characters
 
-    input >> result.chi >> result.w >> result.xLabel >> result.yLabel;
+    input >> std::boolalpha;
+
+    input >> result.chi >> result.w >> result.isDimensionless >> result.xLabel >> result.yLabel;
 
     input.close();
 
@@ -456,7 +566,7 @@ static FieldResultParams read_field_params(const std::filesystem::path& path) no
 
     if (!input.good())
     {
-        throw std::runtime_error("Cannot read data from file :" + path.string());
+        throw std::runtime_error("Cannot read data from file: " + path.string());
     }
 
     FieldResultParams result;
@@ -464,8 +574,58 @@ static FieldResultParams read_field_params(const std::filesystem::path& path) no
     input.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skipping first header line
     input.ignore(std::numeric_limits<std::streamsize>::max(), COMMENT_CHARACTER); // skipping comment characters
 
-    input >> result.chi >> result.surfaceSplitsNum >> result.internalSplitsNum 
-          >> result.externalSplitsNum >> result.xLabel >> result.yLabel >> result.potentialLabel;
+    input >> std::boolalpha;
+
+    input >> result.chi >> result.surfaceSplitsNum >> result.internalSplitsNum >> result.externalSplitsNum 
+          >> result.potentialMin >> result.potentialMax >> result.fluidTopPotential 
+          >> result.isDimensionless >> result.xLabel >> result.yLabel >> result.potentialLabel;
+
+    input.close();
+
+    return result;
+}
+
+
+static FieldResultParams read_field_grid_params(const std::filesystem::path& path) noexcept(false)
+{
+    std::ifstream input(path);
+
+    if (!input.good())
+    {
+        throw std::runtime_error("Cannot read data from file: " + path.string());
+    }
+
+    FieldResultParams result;
+
+    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skipping first header line
+    input.ignore(std::numeric_limits<std::streamsize>::max(), COMMENT_CHARACTER); // skipping comment characters
+
+    input >> std::boolalpha;
+
+    input >> result.chi >> result.surfaceSplitsNum >> result.internalSplitsNum
+          >> result.externalSplitsNum >> result.isDimensionless >> result.xLabel >> result.yLabel;
+
+    input.close();
+
+    return result;
+}
+
+
+static double read_height_coefs_params(const std::filesystem::path& path) noexcept(false)
+{
+    std::ifstream input(path);
+
+    if(!input.good())
+    {
+        throw std::runtime_error("Cannot read data from file: " + path.string());
+    }
+
+    double result;
+
+    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skipping first header line
+    input.ignore(std::numeric_limits<std::streamsize>::max(), COMMENT_CHARACTER); // skipping comment characters
+
+    input >> result;
 
     input.close();
 

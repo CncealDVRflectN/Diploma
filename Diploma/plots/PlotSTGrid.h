@@ -2,40 +2,24 @@
 #define DIPLOMA_PLOTSTGRID_H
 
 
-#ifndef GNUPLOT
-    #define GNUPLOT "gnuplot"
-#endif
-
-
+#include <filesystem>
 #include "Pipe.h"
-#include "SimpleTriangleGrid.h"
-#include <string>
-
-
-typedef struct plot_st_grid_params_t
-{
-	std::string title;
-	std::string labelX;
-	std::string labelY;
-	int windowWidth;
-	int windowHeight;
-	bool isEqualAxis;
-} PlotSTGridParams;
+#include "Plot.h"
 
 
 class PlotSTGrid
 {
 public:
-	PlotSTGrid(const PlotSTGridParams& params);
+	PlotSTGrid(const PlotParams& params);
 
 
-	void plot(const SimpleTriangleGrid& grid, double volumeNonDimMul);
+	void plot(const std::filesystem::path& internalDataPath, const std::filesystem::path& externalDataPath);
 
 	void close();
 
 private:
     Pipe mPipe;
-	PlotSTGridParams mParams;
+	PlotParams mParams;
 };
 
 #endif

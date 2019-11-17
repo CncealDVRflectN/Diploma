@@ -4,11 +4,15 @@
 
 #include "MagneticFluid.h"
 #include "MagneticField.h"
+#include "files_util.h"
 
 
 typedef struct problem_params_t
 {
     STGridParams gridParams;
+    std::string xLabel;
+    std::string yLabel;
+    std::string potentialLabel;
 	double wTarget;
     double relaxationParamInitial;
 	double relaxationParamMin;
@@ -25,6 +29,7 @@ typedef struct problem_params_t
 	int fieldIterationsMaxNum;
 	int resultsNum;
     bool isRightSweepPedantic;
+    bool isDimensionless;
 } ProblemParams;
 
 
@@ -49,6 +54,28 @@ public:
     const MagneticField& field() const;
 
     void resetIterationsCounters();
+
+
+    FluidResultParams fluidResultParams() const;
+
+    FieldResultParams fieldResultParams() const;
+
+
+    std::filesystem::path writeFluidData() const;
+
+    void writeFluidData(const std::filesystem::path& fluidDataPath) const;
+
+    std::filesystem::path writeFieldData() const;
+
+    void writeFieldData(const std::filesystem::path& fieldDataPath) const;
+
+    std::filesystem::path writeInternalGridData() const;
+
+    void writeInternalGridData(const std::filesystem::path& gridDataPath) const;
+
+    std::filesystem::path writeExternalGridData() const;
+
+    void writeExternalGridData(const std::filesystem::path& gridDataPath) const;
 
 
     void setFluidActionForKey(const std::string& key, const MagneticFluidAction& action);
@@ -92,6 +119,8 @@ private:
                           const SimpleTriangleGrid& grid);
 
 	bool isAccuracyReached() const;
+
+    Vector2<double> potentialLimits() const;
 };
 
 

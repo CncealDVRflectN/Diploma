@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_RESULT_CODES_H
 #define DIPLOMA_RESULT_CODES_H
 
-enum ResultCode
+enum class ResultCode
 {
     FLUID_SUCCESS,
     FLUID_ITERATIONS_LIMIT_EXCEEDED,

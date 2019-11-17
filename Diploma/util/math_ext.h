@@ -71,7 +71,7 @@ inline double double_triangle_area(const Vector2<double>& vert1,
 #pragma region Parametric point
 
 template <typename T>
-T parametric_point(const Array<T>& points, double param)
+static T parametric_point(const Array<T>& points, double param)
 {
     static_assert(is_arithmetic_ext<T>::value, "Parametric point cannot be calculated for Array of this type");
 
