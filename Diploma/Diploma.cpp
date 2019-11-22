@@ -4,6 +4,7 @@
 #include "PlotFluid.h"
 #include "PlotHeightCoefs.h"
 #include "PlotFieldIsolines.h"
+#include "PlotField.h"
 
 
 void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution& solution)
@@ -28,16 +29,24 @@ void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution&
     solution.writeInternalGridData(gridIntPath);
     solution.writeExternalGridData(gridExtPath);
 
+    std::filesystem::path fluidPath = solution.writeFluidData();
+
     printf("Results saved\n\n");
 
-    PlotParams plotGridParams = optsHandler.plotParameters();
-    PlotSTGrid plotGrid(plotGridParams);
+    PlotParams plotParams = optsHandler.plotParameters();
+    PlotSTGrid plotGrid(plotParams);
+    PlotFieldIsolines plotFieldIsolines(plotParams);
+    PlotField plotField(plotParams);
 
     plotGrid.plot(gridIntPath, gridExtPath);
+    plotFieldIsolines.plot(fieldPath, fluidPath);
+    plotField.plot(fieldPath, fluidPath);
 
     system("pause");
 
     plotGrid.close();
+    plotFieldIsolines.close();
+    plotField.close();
 }
 
 
@@ -117,18 +126,21 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
         PlotFluid fluidPlot(plotsParams);
         PlotSTGrid gridPlot(plotsParams);
         PlotFieldIsolines isolinesPlot(plotsParams);
+        PlotField fieldPlot(plotsParams);
 
         printf("Plotting fluid, grid and field isolines...\n\n");
 
         fluidPlot.plot(fluidDatas);
         gridPlot.plot(internalGridData, externalGridData);
         isolinesPlot.plot(fieldData, fluidDatas.back());
+        fieldPlot.plot(fieldData, fluidDatas.back());
 
         system("pause");
 
         fluidPlot.close();
         gridPlot.close();
         isolinesPlot.close();
+        fieldPlot.close();
 
         curChi += stepChi;
     }

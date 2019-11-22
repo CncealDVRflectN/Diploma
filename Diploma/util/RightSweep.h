@@ -24,7 +24,7 @@ enum RightSweepAccessType
 class RightSweep
 {
 public:
-	RightSweep(arr_size_t size, bool isPedantic = false);
+    RightSweep(arr_size_t size, bool isPedantic = false);
 
 
     arr_size_t size();
@@ -34,30 +34,30 @@ public:
 
 
     Array<double> solve();
-
-	void solve(Array<double>& solutionDest);
+    
+    void solve(Array<double>& solutionDest);
 
 private:
     Array<double> mLowerDiagonal;
     Array<double> mMainDiagonal;
     Array<double> mUpperDiagonal;
     Array<double> mConstTerms;
-
-	Array<double> mAlpha;
-	Array<double> mBeta;
-
-	arr_size_t mSize;
-
+    
+    Array<double> mAlpha;
+    Array<double> mBeta;
+    
+    arr_size_t mSize;
+    
     bool mIsPedantic;
-
-
-	void calcAlpha();
-
-	void calcBeta();
-
-	void reversal(Array<double>& solutionDest);
-
-	bool isValid() const;
+    
+    
+    void calcAlpha();
+    
+    void calcBeta();
+    
+    void reversal(Array<double>& solutionDest);
+    
+    bool isValid() const;
 };
 
 

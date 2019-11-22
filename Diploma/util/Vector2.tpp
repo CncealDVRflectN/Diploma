@@ -41,8 +41,8 @@ Vector2<T>::Vector2(std::initializer_list<T> initList)
 template <typename T>
 inline double Vector2<T>::length() const
 {
-	static_assert(std::is_arithmetic<T>::value, "Length cannot be calculated for Vector2 of this type");
-	return sqrt(x * x + y * y);
+    static_assert(std::is_arithmetic<T>::value, "Length cannot be calculated for Vector2 of this type");
+    return sqrt(x * x + y * y);
 }
 
 #pragma endregion
@@ -68,45 +68,45 @@ inline Vector2<T>& Vector2<T>::operator=(const Vector2<K>& r)
 template <typename T, typename K>
 inline Vector2<T> operator+(const Vector2<T>& l, const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator + cannot be calculated for Vector2 of this type");
-	return Vector2<T>(l.x + r.x, l.y + r.y);
+    return Vector2<T>(l.x + r.x, l.y + r.y);
 }
 
 
 template <typename T, typename K>
 inline Vector2<T> operator-(const Vector2<T>& l, const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator - cannot be calculated for Vector2 of this type");
-	return Vector2<T>(l.x - r.x, l.y - r.y);
+    return Vector2<T>(l.x - r.x, l.y - r.y);
 }
 
 
 template <typename T, typename K>
 inline Vector2<T> operator*(const Vector2<T>& l, const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator * cannot be calculated for Vector2 of this type");
-	return Vector2<T>(l.x * r.x, l.y * r.y);
+    return Vector2<T>(l.x * r.x, l.y * r.y);
 }
 
 
 template <typename T, typename K>
 inline Vector2<T> operator/(const Vector2<T>& l, const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator / cannot be calculated for Vector2 of this type");
-	return Vector2<T>(l.x / r.x, l.y / r.y);
+    return Vector2<T>(l.x / r.x, l.y / r.y);
 }
 
 
 template <typename T, typename K>
 inline Vector2<T> operator*(const Vector2<T>& l, const K& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator * cannot be calculated for Vector2 of this type");
-	return Vector2<T>(l.x * r, l.y * r);
+    return Vector2<T>(l.x * r, l.y * r);
 }
 
 
@@ -122,9 +122,9 @@ inline Vector2<T> operator*(const K& l, const Vector2<T>& r)
 template <typename T, typename K>
 inline Vector2<T> operator/(const Vector2<T>& l, const K& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator / cannot be calculated for Vector2 of this type");
-	return Vector2<T>(l.x / r, l.y / r);
+    return Vector2<T>(l.x / r, l.y / r);
 }
 
 #pragma endregion
@@ -136,13 +136,13 @@ template <typename T>
 template <typename K>
 inline Vector2<T>& Vector2<T>::operator+=(const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator += cannot be calculated for Vector2 of this type");
-
-	x += r.x;
-	y += r.y;
-
-	return *this;
+    
+    x += r.x;
+    y += r.y;
+    
+    return *this;
 }
 
 
@@ -150,13 +150,13 @@ template <typename T>
 template <typename K>
 inline Vector2<T>& Vector2<T>::operator-=(const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator -= cannot be calculated for Vector2 of this type");
-
-	x -= r.x;
-	y -= r.y;
-
-	return *this;
+    
+    x -= r.x;
+    y -= r.y;
+    
+    return *this;
 }
 
 
@@ -164,13 +164,13 @@ template <typename T>
 template <typename K>
 inline Vector2<T>& Vector2<T>::operator*=(const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator *= cannot be calculated for Vector2 of this type");
-
-	x *= r.x;
-	y *= r.y;
-
-	return *this;
+    
+    x *= r.x;
+    y *= r.y;
+    
+    return *this;
 }
 
 
@@ -178,13 +178,12 @@ template <typename T>
 template <typename K>
 inline Vector2<T>& Vector2<T>::operator/=(const Vector2<K>& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator /= cannot be calculated for Vector2 of this type");
-
-	x /= r.x;
-	y /= r.y;
-
-	return *this;
+    
+    x /= r.x;
+    y /= r.y;
+    return *this;
 }
 
 
@@ -192,13 +191,13 @@ template <typename T>
 template <typename K>
 inline Vector2<T>& Vector2<T>::operator*=(const K& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator *= cannot be calculated for Vector2 of this type");
-
-	x *= r;
-	y *= r;
-
-	return *this;
+    
+    x *= r;
+    y *= r;
+    
+    return *this;
 }
 
 
@@ -206,13 +205,13 @@ template <typename T>
 template <typename K>
 inline Vector2<T>& Vector2<T>::operator/=(const K& r)
 {
-	static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
+    static_assert(std::is_arithmetic<T>::value && std::is_arithmetic<K>::value, 
                   "Operator /= cannot be calculated for Vector2 of this type");
-
-	x /= r;
-	y /= r;
-
-	return *this;
+    
+    x /= r;
+    y /= r;
+    
+    return *this;
 }
 
 #pragma endregion

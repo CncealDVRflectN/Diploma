@@ -49,16 +49,16 @@ Solution::Solution(const ProblemParams& params) : mParams(params),
                                                   mLastValidFieldGrid(mField.grid().parameters()), 
                                                   mLastValidFieldPotential(mField.grid().rowsNum(), mField.grid().columnsNum())
 {
-	if (params.resultsNum == 1)
-	{
-		mStepW = params.wTarget;
-		mCurW = params.wTarget;
-	}
-	else
-	{
-		mStepW = params.wTarget / (params.resultsNum - 1);
-		mCurW = 0.0;
-	}
+    if (params.resultsNum == 1)
+    {
+        mStepW = params.wTarget;
+        mCurW = params.wTarget;
+    }
+    else
+    {
+        mStepW = params.wTarget / (params.resultsNum - 1);
+        mCurW = 0.0;
+    }
 }
 
 #pragma endregion

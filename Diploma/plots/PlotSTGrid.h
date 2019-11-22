@@ -10,16 +10,16 @@
 class PlotSTGrid
 {
 public:
-	PlotSTGrid(const PlotParams& params);
-
-
-	void plot(const std::filesystem::path& internalDataPath, const std::filesystem::path& externalDataPath);
-
-	void close();
+    PlotSTGrid(const PlotParams& params);
+    
+    
+    void plot(const std::filesystem::path& internalDataPath, const std::filesystem::path& externalDataPath);
+    
+    void close();
 
 private:
     Pipe mPipe;
-	PlotParams mParams;
+    PlotParams mParams;
 };
 
 #endif

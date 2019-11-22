@@ -18,11 +18,12 @@ Pipe::Pipe(const char* const pipeName, PipeAccessType accessType)
 
     switch (accessType)
     {
-    case PipeAccessType::PIPE_WRITE:
-        accessTypeStr = ACCESS_TYPE_WRITE;
-        break;
-    default:
-        break;
+        case PipeAccessType::PIPE_WRITE:
+            accessTypeStr = ACCESS_TYPE_WRITE;
+            break;
+
+        default:
+            break;
     }
 
     assert_message(accessTypeStr != nullptr, "Unknown pipe access type");

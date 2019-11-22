@@ -351,48 +351,47 @@ inline void swap(Array<T>& first, Array<T>& second)
 template <typename T>
 T norm(const Array<T>& a, const Array<T>& b)
 {
-	static_assert(std::is_arithmetic<T>::value, "Norm cannot be calculated for arrays of this type");
-	assert_message(a.size() == b.size(), "Norm cannot be calculated for arrays of different sizes");
+    static_assert(std::is_arithmetic<T>::value, "Norm cannot be calculated for arrays of this type");
+    assert_message(a.size() == b.size(), "Norm cannot be calculated for arrays of different sizes");
 
-	T max = -std::numeric_limits<T>::min();
-	T absDif = 0.0;
-
-	const arr_size_t size = a.size();
-	for (arr_size_t i = 0; i < size; i++)
-	{
-		absDif = std::abs(a(i) - b(i));
-
-		if (absDif > max)
-		{
-			max = absDif;
-		}
-	}
-
-	return max;
+    T max = -std::numeric_limits<T>::min();
+    T absDif = 0.0;
+    
+    const arr_size_t size = a.size();
+    for (arr_size_t i = 0; i < size; i++)
+    {
+        absDif = std::abs(a(i) - b(i));
+        if (absDif > max)
+        {
+            max = absDif;
+        }
+    }
+    
+    return max;
 }
 
 
 template <typename T>
 T norm(const Array<Vector2<T>>& a, const Array<Vector2<T>>& b)
 {
-	static_assert(std::is_arithmetic<T>::value, "Norm cannot be calculated for arrays of this type");
-	assert_message(a.size() == b.size(), "Norm cannot be calculated for arrays of different sizes");
-
-	T max = -std::numeric_limits<T>::min();
-	T absDif = 0.0;
-
-	const arr_size_t size = a.size();
-	for (arr_size_t i = 0; i < size; i++)
-	{
-		absDif = std::max(std::abs(a(i).x - b(i).x), std::abs(a(i).y - b(i).y));
-
-		if (absDif > max)
-		{
-			max = absDif;
-		}
-	}
-
-	return max;
+    static_assert(std::is_arithmetic<T>::value, "Norm cannot be calculated for arrays of this type");
+    assert_message(a.size() == b.size(), "Norm cannot be calculated for arrays of different sizes");
+    
+    T max = -std::numeric_limits<T>::min();
+    T absDif = 0.0;
+    
+    const arr_size_t size = a.size();
+    for (arr_size_t i = 0; i < size; i++)
+    {
+        absDif = std::max(std::abs(a(i).x - b(i).x), std::abs(a(i).y - b(i).y));
+        
+        if (absDif > max)
+        {
+            max = absDif;
+        }
+    }
+    
+    return max;
 }
 
 #pragma endregion

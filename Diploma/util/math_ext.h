@@ -79,7 +79,7 @@ static T parametric_point(const Array<T>& points, double param)
     const int maxIndex = pointsNum - 1;
 
     int prevIndex = (int)(maxIndex * param);
-	int nextIndex = prevIndex + 1;
+    int nextIndex = prevIndex + 1;
 
     if (prevIndex >= maxIndex)
     {

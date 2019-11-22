@@ -13,21 +13,21 @@ typedef struct problem_params_t
     std::string xLabel;
     std::string yLabel;
     std::string potentialLabel;
-	double wTarget;
+    double wTarget;
     double relaxationParamInitial;
-	double relaxationParamMin;
+    double relaxationParamMin;
     double fieldRelaxParamInitial;
-	double fieldRelaxParamMin;
+    double fieldRelaxParamMin;
     double fieldModelRelaxParamInitial;
     double fieldModelRelaxParamMin;
-	double accuracy;
-	double fieldAccuracy;
-	double chi;
+    double accuracy;
+    double fieldAccuracy;
+    double chi;
     double fieldModelChi;
-	int splitsNum;
-	int iterationsMaxNum;
-	int fieldIterationsMaxNum;
-	int resultsNum;
+    int splitsNum;
+    int iterationsMaxNum;
+    int fieldIterationsMaxNum;
+    int resultsNum;
     bool isRightSweepPedantic;
     bool isDimensionless;
 } ProblemParams;
@@ -36,9 +36,9 @@ typedef struct problem_params_t
 class Solution
 {
 public:
-	Solution(const ProblemParams& params);
+    Solution(const ProblemParams& params);
 
-	
+
     void setChi(double chi);
 
     double currentW() const;
@@ -85,41 +85,41 @@ public:
     void setFieldActionForKey(const std::string& key, const MagneticFieldAction& action);
 
     void removeFieldActionForKey(const std::string& key);
-
-
-	void calcInitials();
-
-	ResultCode calcResult(double w);
-
-	ResultCode calcNextResult();
-
+    
+    
+    void calcInitials();
+    
+    ResultCode calcResult(double w);
+    
+    ResultCode calcNextResult();
+    
     ResultCode calcFieldModelProblem();
 
 private:
     ProblemParams mParams;
-
-	MagneticField mField;
-	MagneticFluid mFluid;
-
+    
+    MagneticField mField;
+    MagneticFluid mFluid;
+    
     SimpleTriangleGrid mLastValidFieldGrid;
-	Array<Vector2<double>> mLastValidFluidSurface;
-	Matrix<double> mLastValidFieldPotential;
-
-	double mCurW;
-	double mStepW;
-
-
-	void updateLastValidResults();
-
-	Array<Vector2<double>> calcDerivatives() const;
-
+    Array<Vector2<double>> mLastValidFluidSurface;
+    Matrix<double> mLastValidFieldPotential;
+    
+    double mCurW;
+    double mStepW;
+    
+    
+    void updateLastValidResults();
+    
+    Array<Vector2<double>> calcDerivatives() const;
+    
     void fieldModelAction(const MagneticParams& params,
                           const Matrix<double>& nextApprox,
                           const Matrix<double>& curApprox,
                           const SimpleTriangleGrid& grid);
-
-	bool isAccuracyReached() const;
-
+    
+    bool isAccuracyReached() const;
+    
     Vector2<double> potentialLimits() const;
 };
 

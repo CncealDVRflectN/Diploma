@@ -6,70 +6,70 @@ template <typename T>
 class Vector2
 {
 public:
-	union
-	{
-		struct
-		{
-			T x;
-			T y;
-		};
-
-		struct
-		{
-			T r;
-			T z;
-		};
-
-		struct
-		{
-			T i;
-			T j;
-		};
-
-		struct
-		{
-			T u;
-			T v;
-		};
-
-		T raw[2];
-	};
-
-
-	Vector2();
-
-	Vector2(const T& xVal, const T& yVal);
-
+    union
+    {
+        struct
+        {
+            T x;
+            T y;
+        };
+        
+        struct
+        {
+            T r;
+            T z;
+        };
+        
+        struct
+        {
+            T i;
+            T j;
+        };
+        
+        struct
+        {
+            T u;
+            T v;
+        };
+        
+        T raw[2];
+    };
+    
+    
+    Vector2();
+    
+    Vector2(const T& xVal, const T& yVal);
+    
     Vector2(const Vector2<T>& vect);
-
+    
     Vector2(std::initializer_list<T> initList);
-
-
-	double length() const;
+    
+    
+    double length() const;
 
     template <typename K>
     Vector2<T>& operator=(const Vector2<K>& r);
 
 
     template <typename K>
-	Vector2<T>& operator+=(const Vector2<K>& r);
+    Vector2<T>& operator+=(const Vector2<K>& r);
 
     template <typename K>
-	Vector2<T>& operator-=(const Vector2<K>& r);
+    Vector2<T>& operator-=(const Vector2<K>& r);
 
     template <typename K>
-	Vector2<T>& operator*=(const Vector2<K>& r);
+    Vector2<T>& operator*=(const Vector2<K>& r);
 
     template <typename K>
-	Vector2<T>& operator/=(const Vector2<K>& r);
+    Vector2<T>& operator/=(const Vector2<K>& r);
 
     template <typename K>
-	Vector2<T>& operator*=(const K& r);
+    Vector2<T>& operator*=(const K& r);
 
     template <typename K>
-	Vector2<T>& operator/=(const K& r);
-
-
+    Vector2<T>& operator/=(const K& r);
+    
+    
     void swap(Vector2<T>& other);
 };
 

@@ -2,14 +2,14 @@
 #include "math_ext.h"
 
 
-static const Array<Vector2<arr_size_t>> OFFSETS_TABLE = { {-1,  1}, 
-										                  { 0,  1}, 
-										                  { 1,  0}, 
-										                  { 1, -1}, 
-										                  { 0, -1}, 
-										                  {-1,  0}, 
-										                  {-1,  1}, 
-										                  { 0,  1} };
+static const Array<Vector2<arr_size_t>> OFFSETS_TABLE = { {-1,  1},
+                                                          { 0,  1}, 
+                                                          { 1,  0}, 
+                                                          { 1, -1}, 
+                                                          { 0, -1}, 
+                                                          {-1,  0}, 
+                                                          {-1,  1}, 
+                                                          { 0,  1} };
 
 
 #pragma region Constructors

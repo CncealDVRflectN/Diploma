@@ -36,7 +36,8 @@
         "--field-inf-pos-multiplier=4.0",
         "--dimensionless",
         "--equal-axis",
-        "--main-problem"
+        "--main-problem",
+        "--field-model-problem"
       ]
     },
     {

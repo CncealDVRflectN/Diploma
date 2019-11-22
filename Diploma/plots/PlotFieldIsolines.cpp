@@ -66,7 +66,7 @@ void PlotFieldIsolines::plot(const std::filesystem::path& fieldData, const std::
 
     mPipe.write("plot '%s' with lines notitle palette, "
                 "'%s' using 1:2:(sprintf('%%.2f', $3)) every 37 with labels boxed notitle, "
-                "'%s' with lines notitle ls @SURFACE_STYLE\n", 
+                "'%s' using 1:2 with lines notitle ls @SURFACE_STYLE\n", 
                 contoursData.string().c_str(),
                 contoursData.string().c_str(),
                 fluidData.string().c_str(), 
