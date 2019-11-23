@@ -10,6 +10,10 @@
       "args": [
         "--window-width=1600",
         "--window-height=900",
+        "--label-x='r'",
+        "--label-y='z'",
+        "--label-potential='potential'",
+        "--label-error='error'",
         "--w-param-target=5.0",
         "--chi-param-initial=1.0",
         "--chi-param-target=5.0",
@@ -19,10 +23,10 @@
         "--splits-num=100",
         "--iterations-max-num=10000",
         "--w-results-num=3",
-        "--chi-results-num=1",
+        "--chi-results-num=3",
         "--field-surf-splits-num=8",
         "--field-int-splits-num=8",
-        "--field-inf-splits-num=10",
+        "--field-ext-splits-num=14",
         "--field-iter-max-num=10000",
         "--field-accuracy=0.00001",
         "--field-relax-param-initial=1.0",
@@ -31,10 +35,16 @@
         "--field-model-relax-param-min=0.00001",
         "--field-model-chi=1.0",
         "--field-inf-pos-multiplier=4.0",
-        "--nondim",
+        "--plot-fluid",
+        "--plot-field",
+        "--plot-field-isolines",
+        "--plot-field-error",
+        "--plot-field-grid",
+        "--plot-height-coefs",
+        "--dimensionless",
         "--equal-axis",
-        "--field-model-problem",
-        "--main-problem"
+        "--main-problem",
+        "--field-model-problem"
       ]
     },
     {
@@ -42,11 +52,6 @@
       "project": "CMakeLists.txt",
       "projectTarget": "Diploma.exe (Diploma\\Diploma.exe)",
       "name": "Diploma.exe (Diploma\\Diploma.exe)"
-    },
-    {
-      "type": "default",
-      "project": "CMakeLists.txt",
-      "name": "CMakeLists.txt"
     }
   ]
 }

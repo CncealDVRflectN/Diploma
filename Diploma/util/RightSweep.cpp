@@ -30,15 +30,19 @@ double& RightSweep::operator()(RightSweepAccessType accessType, arr_size_t index
         case RS_LOWER_DIAGONAL:
             assert_message(index >= 0 && index < mLowerDiagonal.size(), "Right sweep lower diagonal index out of bounds");
             return mLowerDiagonal(index);
+
         case RS_MAIN_DIAGONAL:
             assert_message(index >= 0 && index < mMainDiagonal.size(), "Right sweep main diagonal index out of bounds");
             return mMainDiagonal(index);
+
         case RS_UPPER_DIAGONAL:
             assert_message(index >= 0 && index < mUpperDiagonal.size(), "Right sweep upper diagonal index out of bounds");
             return mUpperDiagonal(index);
+
         case RS_CONST_TERMS:
             assert_message(index >= 0 && index < mConstTerms.size(), "Right sweep vector index out of bounds");
             return mConstTerms(index);
+
         default:
             assert_message(false, "Right sweep unknown access type");
             return mMainDiagonal(-1);

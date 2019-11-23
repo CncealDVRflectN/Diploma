@@ -1,9 +1,10 @@
 #include "PlotSTGrid.h"
+#include "files_util.h"
 
 
 #pragma region Constructors
 
-PlotSTGrid::PlotSTGrid(const PlotSTGridParams& params) : mParams(params), mPipe(GNUPLOT, PIPE_WRITE)
+PlotSTGrid::PlotSTGrid(const PlotParams& params) : mParams(params), mPipe("gnuplot", PipeAccessType::PIPE_WRITE)
 {}
 
 #pragma endregion
@@ -11,75 +12,26 @@ PlotSTGrid::PlotSTGrid(const PlotSTGridParams& params) : mParams(params), mPipe(
 
 #pragma region Member methods
 
-void PlotSTGrid::plot(const SimpleTriangleGrid& grid, double volumeNonDimMul)
+void PlotSTGrid::plot(const std::filesystem::path& internalDataPath, const std::filesystem::path& externalDataPath)
 {
-    const Matrix<Vector2<double>> points = volumeNonDimMul * grid.rawPoints();
+    FieldResultParams params = read_field_grid_params(internalDataPath);
 
-    mPipe.write("set term wxt size %d, %d enhanced\n", mParams.windowWidth, mParams.windowHeight);
-    mPipe.write("set title \"%s\"\n", mParams.title.c_str());
-    mPipe.write("set xlabel \"%s\"\n", mParams.labelX.c_str());
-    mPipe.write("set ylabel \"%s\"\n", mParams.labelY.c_str());
+    mPipe.write("set term wxt size %u, %u enhanced font 'Verdana,10'\n", mParams.windowWidth, mParams.windowHeight);
+    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
+    mPipe.write("load '%s'\n", plot_config_path("st-grid.cfg").string().c_str());
+    mPipe.write("set title 'Magnetic field grid, {/Symbol c}=%lf'\n", params.chi);
+    mPipe.write("set xlabel '%s' norotate textcolor rgb '#757575'\n", params.xLabel.c_str());
+    mPipe.write("set ylabel '%s' norotate textcolor rgb '#757575'\n", params.yLabel.c_str());
 
     if (mParams.isEqualAxis)
     {
         mPipe.write("set size ratio -1\n");
     }
 
-    mPipe.write("plot '-' with lines title \"¬нутренн€€ сетка\" lc rgb \"red\", "
-                "'-' with lines title \"¬нешн€€ сетка\" lc rgb \"blue\"\n");
+    mPipe.write("plot '%s' u 1:2 with lines title 'Internal grid' ls @INTERNAL_STYLE, "
+                "'%s' u 1:2 with lines title 'External grid' ls @EXTERNAL_STYLE\n", 
+                internalDataPath.string().c_str(), externalDataPath.string().c_str());
 
-    const arr_size_t gridRowsNum = grid.rowsNum();
-    const arr_size_t gridColumnsNum = grid.columnsNum();
-    const arr_size_t surfaceColumnIndex = grid.surfaceColumnsIndex();
-
-    for (arr_size_t i = 0; i < gridRowsNum; i++)
-    {
-        for (arr_size_t j = 0; j <= surfaceColumnIndex; j++)
-        {
-            mPipe.write("%lf %lf\n", points(i, j).r, points(i, j).z);
-
-            if (i != gridRowsNum - 1 && j != surfaceColumnIndex)
-            {
-                mPipe.write("%lf %lf\n", points(i + 1, j).r, points(i + 1, j).z);
-                mPipe.write("%lf %lf\n", points(i, j + 1).r, points(i, j + 1).z);
-                mPipe.write("%lf %lf\n", points(i, j).r, points(i, j).z);
-            }
-            else if (i != gridRowsNum - 1)
-            {
-                for (arr_size_t k = surfaceColumnIndex; k >= 0; k--)
-                {
-                    mPipe.write("%lf %lf\n", points(i + 1, k).r, points(i + 1, k).z);
-                }
-            }
-        }
-    }
-
-    mPipe.write("e\n");
-    mPipe.flush();
-
-    for (arr_size_t i = 0; i < gridRowsNum; i++)
-    {
-        for (arr_size_t j = surfaceColumnIndex; j < gridColumnsNum; j++)
-        {
-            mPipe.write("%lf %lf\n", points(i, j).r, points(i, j).z);
-
-            if (i != gridRowsNum - 1 && j != gridColumnsNum - 1)
-            {
-                mPipe.write("%lf %lf\n", points(i + 1, j).r, points(i + 1, j).z);
-                mPipe.write("%lf %lf\n", points(i, j + 1).r, points(i, j + 1).z);
-                mPipe.write("%lf %lf\n", points(i, j).r, points(i, j).z);
-            }
-            else if (i != gridRowsNum - 1)
-            {
-                for (arr_size_t k = gridColumnsNum - 1; k >= surfaceColumnIndex; k--)
-                {
-                    mPipe.write("%lf %lf\n", points(i + 1, k).r, points(i + 1, k).z);
-                }
-            }
-        }
-    }
-
-    mPipe.write("e\n");
     mPipe.flush();
 }
 

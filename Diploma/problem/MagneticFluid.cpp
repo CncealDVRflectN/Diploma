@@ -186,12 +186,12 @@ ResultCode MagneticFluid::calcRelaxation()
     if (counter >= mParams.iterationsNumMax)
     {
         printf("Fluid relaxation iterations limit exceeded\n\n");
-        return FLUID_ITERATIONS_LIMIT_EXCEEDED;
+        return ResultCode::FLUID_ITERATIONS_LIMIT_EXCEEDED;
     }
     else if (!isApproximationValid(mNextApproxR) || !isApproximationValid(mNextApproxZ))
     {
         printf("Fluid relaxation invalid result\n\n");
-        return FLUID_INVALID_RESULT;
+        return ResultCode::FLUID_INVALID_RESULT;
     }
     else
     {
@@ -204,7 +204,7 @@ ResultCode MagneticFluid::calcRelaxation()
 
     printf("Fluid relaxation calculated\n\n");
 
-    return FLUID_SUCCESS;
+    return ResultCode::FLUID_SUCCESS;
 }
 
 

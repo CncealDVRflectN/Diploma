@@ -9,7 +9,7 @@ template <typename T>
 class Matrix
 {
 public:
-	Matrix(arr_size_t rowsNum, arr_size_t columnsNum);
+    Matrix(arr_size_t rowsNum, arr_size_t columnsNum);
 
     Matrix(const Matrix<T>& matrix);
 
@@ -59,11 +59,11 @@ public:
     friend T norm<T>(const Matrix<T>& a, const Matrix<T>& b);
 
 private:
-	Array<T> mElements;
-	arr_size_t mRowsNum;
-	arr_size_t mColumnsNum;
-
-
+    Array<T> mElements;
+    arr_size_t mRowsNum;
+    arr_size_t mColumnsNum;
+    
+    
     Matrix(const Array<T>& elements, arr_size_t rowsNum, arr_size_t columnsNum);
 };
 

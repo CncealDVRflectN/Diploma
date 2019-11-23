@@ -7,7 +7,7 @@
 template <typename T>
 Matrix<T>::Matrix(arr_size_t rowsNum, arr_size_t columnsNum) : mElements(rowsNum * columnsNum), 
                                                                mRowsNum(rowsNum),
-													           mColumnsNum(columnsNum) {}
+                                                               mColumnsNum(columnsNum) {}
 
 
 template <typename T>

@@ -2,13 +2,15 @@
 #define DIPLOMA_PROGRAM_OPTS_HANDLER_H
 
 #include "Solution.h"
-#include "PlotLines.h"
-#include "PlotSTGrid.h";
-#include "PlotIsolines.h"
+#include "Plot.h"
 
 
 typedef struct program_params_t
 {
+    std::string xLabel;
+    std::string yLabel;
+    std::string potentialLabel;
+    std::string errorLabel;
     double wTarget;
     double relaxationParamInitial;
     double relaxationParamMin;
@@ -27,16 +29,22 @@ typedef struct program_params_t
     int splitsNum;
     int fieldSurfaceSplitsNum;
     int fieldInternalSplitsNum;
-    int fieldInfinitySplitsNum;
+    int fieldExternalSplitsNum;
     int iterationsMaxNum;
     int fieldIterationsMaxNum;
     int resultsNumW;
     int resultsNumChi;
     bool isEqualAxis;
-    bool isNonDim;
+    bool isDimensionless;
     bool isRightSweepPedantic;
     bool isMainProblemEnabled;
     bool isFieldModelProblemEnabled;
+    bool isPlotFluidSurfaceEnabled;
+    bool isPlotFieldGridEnabled;
+    bool isPlotFieldEnabled;
+    bool isPlotFieldIsolinesEnabled;
+    bool isPlotFieldErrorEnabled;
+    bool isPlotHeightCoefsEnabled;
 } ProgramParams;
 
 
@@ -52,13 +60,7 @@ public:
 
     ProblemParams problemParameters() const;
 
-    PlotLinesParams heightCoefsPlotParameters() const;
-
-    PlotLinesParams surfacePlotParametes(std::string title) const;
-
-    PlotSTGridParams gridPlotParameters() const;
-
-    PlotIsolinesParams isolinesPlotParameters() const;
+    PlotParams plotParameters() const;
 
 
     void parseOpts(int argsNum, char** args);
@@ -66,6 +68,8 @@ public:
 private:
     ProgramParams mParams;
 
+
+    std::string readStringValue(char* optPtr) const noexcept(false);
 
     void handleOpt(int optId, char* optPtr);
 };

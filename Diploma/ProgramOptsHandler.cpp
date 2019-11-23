@@ -18,7 +18,7 @@ enum OptsIds
     CHI_RESULTS_NUM_OPT,
     FIELD_SURFACE_SPLITS_NUM_OPT,
     FIELD_INTERNAL_SPLITS_NUM_OPT,
-    FIELD_INFINITY_SPLITS_NUM_OPT,
+    FIELD_EXTERNAL_SPLITS_NUM_OPT,
     FIELD_ITERATIONS_MAX_NUM_OPT,
     FIELD_ACCURACY_OPT,
     FIELD_RELAXATION_PARAM_INITIAL_OPT,
@@ -28,10 +28,20 @@ enum OptsIds
     FIELD_MODEL_CHI_OPT,
     FIELD_INFINITY_POS_MULTIPLIER_OPT,
     EQUAL_AXIS_OPT,
-    NONDIM_OPT,
+    DIMENSIONLESS_OPT,
     PEDANTIC_RIGHT_SWEEP_OPT,
     MAIN_PROBLEM_OPT,
-    FIELD_MODEL_PROBLEM_OPT
+    FIELD_MODEL_PROBLEM_OPT,
+    LABEL_X_OPT,
+    LABEL_Y_OPT,
+    LABEL_POTENTIAL_OPT,
+    LABEL_ERROR_OPT,
+    PLOT_FLUID_OPT,
+    PLOT_FIELD_OPT,
+    PLOT_FIELD_ISOLINES_OPT,
+    PLOT_FIELD_ERROR_OPT,
+    PLOT_FIELD_GRID_OPT,
+    PLOT_HEGHT_COEFS_OPT
 };
 
 
@@ -50,7 +60,7 @@ static const LongOpt LONG_OPTS[] = {
     {"chi-results-num",			            CHI_RESULTS_NUM_OPT},
     {"field-surf-splits-num",	            FIELD_SURFACE_SPLITS_NUM_OPT},
     {"field-int-splits-num",	            FIELD_INTERNAL_SPLITS_NUM_OPT},
-    {"field-inf-splits-num",	            FIELD_INFINITY_SPLITS_NUM_OPT},
+    {"field-ext-splits-num",	            FIELD_EXTERNAL_SPLITS_NUM_OPT},
     {"field-iter-max-num",		            FIELD_ITERATIONS_MAX_NUM_OPT},
     {"field-accuracy",			            FIELD_ACCURACY_OPT},
     {"field-relax-param-initial",           FIELD_RELAXATION_PARAM_INITIAL_OPT},
@@ -60,10 +70,20 @@ static const LongOpt LONG_OPTS[] = {
     {"field-model-chi",                     FIELD_MODEL_CHI_OPT},
     {"field-inf-pos-multiplier",            FIELD_INFINITY_POS_MULTIPLIER_OPT},
     {"equal-axis",				            EQUAL_AXIS_OPT},
-    {"nondim",					            NONDIM_OPT},
+    {"dimensionless",					    DIMENSIONLESS_OPT},
     {"pedantic-right-sweep",                PEDANTIC_RIGHT_SWEEP_OPT},
     {"main-problem",                        MAIN_PROBLEM_OPT},
     {"field-model-problem",                 FIELD_MODEL_PROBLEM_OPT},
+    {"label-x",                             LABEL_X_OPT},
+    {"label-y",                             LABEL_Y_OPT},
+    {"label-potential",                     LABEL_POTENTIAL_OPT},
+    {"label-error",                         LABEL_ERROR_OPT},
+    {"plot-fluid",                          PLOT_FLUID_OPT},
+    {"plot-field",                          PLOT_FIELD_OPT},
+    {"plot-field-isolines",                 PLOT_FIELD_ISOLINES_OPT},
+    {"plot-field-error",                    PLOT_FIELD_ERROR_OPT},
+    {"plot-field-grid",                     PLOT_FIELD_GRID_OPT},
+    {"plot-height-coefs",                   PLOT_HEGHT_COEFS_OPT},
     {nullptr,					            0}
 };
 
@@ -73,6 +93,10 @@ static const LongOpt LONG_OPTS[] = {
 
 ProgramOptsHandler::ProgramOptsHandler()
 {
+    mParams.xLabel = "x";
+    mParams.yLabel = "y";
+    mParams.potentialLabel = "potential";
+    mParams.errorLabel = "error";
     mParams.windowWidth = 1280;
     mParams.windowHeight = 720;
     mParams.wTarget = 0.0;
@@ -89,7 +113,7 @@ ProgramOptsHandler::ProgramOptsHandler()
     mParams.splitsNum = 100;
     mParams.fieldSurfaceSplitsNum = 10;
     mParams.fieldInternalSplitsNum = 5;
-    mParams.fieldInfinitySplitsNum = 5;
+    mParams.fieldExternalSplitsNum = 5;
     mParams.iterationsMaxNum = 1000;
     mParams.fieldIterationsMaxNum = 1000;
     mParams.fieldModelChi = 1.0;
@@ -97,10 +121,16 @@ ProgramOptsHandler::ProgramOptsHandler()
     mParams.resultsNumW = 1;
     mParams.resultsNumChi = 1;
     mParams.isEqualAxis = false;
-    mParams.isNonDim = false;
+    mParams.isDimensionless = false;
     mParams.isRightSweepPedantic = false;
     mParams.isMainProblemEnabled = false;
     mParams.isFieldModelProblemEnabled = false;
+    mParams.isPlotFluidSurfaceEnabled = false;
+    mParams.isPlotFieldEnabled = false;
+    mParams.isPlotFieldIsolinesEnabled = false;
+    mParams.isPlotFieldGridEnabled = false;
+    mParams.isPlotFieldErrorEnabled = false;
+    mParams.isPlotHeightCoefsEnabled = false;
 }
 
 
@@ -124,6 +154,10 @@ ProblemParams ProgramOptsHandler::problemParameters() const
 {
     ProblemParams problemParams;
 
+    problemParams.xLabel = mParams.xLabel;
+    problemParams.yLabel = mParams.yLabel;
+    problemParams.potentialLabel = mParams.potentialLabel;
+    problemParams.errorLabel = mParams.errorLabel;
     problemParams.accuracy = mParams.accuracy;
     problemParams.fieldAccuracy = mParams.fieldAccuracy;
     problemParams.chi = mParams.chiInitial;
@@ -141,68 +175,21 @@ ProblemParams ProgramOptsHandler::problemParameters() const
     problemParams.splitsNum = mParams.splitsNum;
     problemParams.gridParams.surfaceSplitsNum = mParams.fieldSurfaceSplitsNum;
     problemParams.gridParams.internalSplitsNum = mParams.fieldInternalSplitsNum;
-    problemParams.gridParams.infSplitsNum = mParams.fieldInfinitySplitsNum;
+    problemParams.gridParams.externalSplitsNum = mParams.fieldExternalSplitsNum;
     problemParams.gridParams.infMultiplier = mParams.fieldInfinityPosMultiplier;
     problemParams.isRightSweepPedantic = mParams.isRightSweepPedantic;
+    problemParams.isDimensionless = mParams.isDimensionless;
 
     return problemParams;
 }
 
 
-PlotLinesParams ProgramOptsHandler::heightCoefsPlotParameters() const
+PlotParams ProgramOptsHandler::plotParameters() const
 {
-    PlotLinesParams plotParams;
+    PlotParams plotParams;
 
     plotParams.windowWidth = mParams.windowWidth;
     plotParams.windowHeight = mParams.windowHeight;
-    plotParams.title = "Коэффициент вытягивания";
-    plotParams.labelX = "W";
-    plotParams.labelY = "k";
-    plotParams.isEqualAxis = false;
-
-    return plotParams;
-}
-
-
-PlotLinesParams ProgramOptsHandler::surfacePlotParametes(std::string title) const
-{
-    PlotLinesParams plotParams;
-
-    plotParams.windowWidth = mParams.windowWidth;
-    plotParams.windowHeight = mParams.windowHeight;
-    plotParams.title = title;
-    plotParams.labelX = "r";
-    plotParams.labelY = "z";
-    plotParams.isEqualAxis = mParams.isEqualAxis;
-
-    return plotParams;
-}
-
-
-PlotSTGridParams ProgramOptsHandler::gridPlotParameters() const
-{
-    PlotSTGridParams plotParams;
-
-    plotParams.windowWidth = mParams.windowWidth;
-    plotParams.windowHeight = mParams.windowHeight;
-    plotParams.title = "Вычислительная сетка";
-    plotParams.labelX = "r";
-    plotParams.labelY = "z";
-    plotParams.isEqualAxis = mParams.isEqualAxis;
-
-    return plotParams;
-}
-
-
-PlotIsolinesParams ProgramOptsHandler::isolinesPlotParameters() const
-{
-    PlotIsolinesParams plotParams;
-
-    plotParams.windowWidth = mParams.windowWidth;
-    plotParams.windowHeight = mParams.windowHeight;
-    plotParams.title = "Изолинии потенциала магнитного поля";
-    plotParams.labelX = "r";
-    plotParams.labelY = "z";
     plotParams.isEqualAxis = mParams.isEqualAxis;
 
     return plotParams;
@@ -248,93 +235,191 @@ void ProgramOptsHandler::handleOpt(int optId, char* optPtr)
 {
     switch (optId)
     {
-    case WINDOW_WIDTH_OPT:
-        mParams.windowWidth = std::atoi(optPtr);
-        break;
-    case WINDOW_HEIGHT_OPT:
-        mParams.windowHeight = std::atoi(optPtr);
-        break;
-    case W_PARAM_TARGET_OPT:
-        mParams.wTarget = std::atof(optPtr);
-        break;
-    case CHI_INITIAL_OPT:
-        mParams.chiInitial = std::atof(optPtr);
-        break;
-    case CHI_TARGET_OPT:
-        mParams.chiTarget = std::atof(optPtr);
-        break;
-    case RELAXATION_PARAM_INITIAL_OPT:
-        mParams.relaxationParamInitial = std::atof(optPtr);
-        break;
-    case RELAXATION_PARAM_MIN_OPT:
-        mParams.relaxationParamMin = std::atof(optPtr);
-        break;
-    case ACCURACY_OPT:
-        mParams.accuracy = std::atof(optPtr);
-        break;
-    case SPLITS_NUM_OPT:
-        mParams.splitsNum = std::atoi(optPtr);
-        break;
-    case ITERATIONS_MAX_NUM_OPT:
-        mParams.iterationsMaxNum = std::atoi(optPtr);
-        break;
-    case W_RESULTS_NUM_OPT:
-        mParams.resultsNumW = std::atoi(optPtr);
-        break;
-    case CHI_RESULTS_NUM_OPT:
-        mParams.resultsNumChi = std::atoi(optPtr);
-        break;
-    case FIELD_SURFACE_SPLITS_NUM_OPT:
-        mParams.fieldSurfaceSplitsNum = std::atoi(optPtr);
-        break;
-    case FIELD_INTERNAL_SPLITS_NUM_OPT:
-        mParams.fieldInternalSplitsNum = std::atoi(optPtr);
-        break;
-    case FIELD_INFINITY_SPLITS_NUM_OPT:
-        mParams.fieldInfinitySplitsNum = std::atoi(optPtr);
-        break;
-    case FIELD_ACCURACY_OPT:
-        mParams.fieldAccuracy = std::atof(optPtr);
-        break;
-    case FIELD_ITERATIONS_MAX_NUM_OPT:
-        mParams.fieldIterationsMaxNum = std::atoi(optPtr);
-        break;
-    case FIELD_RELAXATION_PARAM_INITIAL_OPT:
-        mParams.fieldRelaxParamInitial = std::atof(optPtr);
-        break;
-    case FIELD_RELAXATION_PARAM_MIN_OPT:
-        mParams.fieldRelaxParamMin = std::atof(optPtr);
-        break;
-    case FIELD_MODEL_RELAXATION_PARAM_INITIAL_OPT:
-        mParams.fieldModelRelaxParamInitial = std::atof(optPtr);
-        break;
-    case FIELD_MODEL_RELAXATION_PARAM_MIN_OPT:
-        mParams.fieldModelRelaxParamMin = std::atof(optPtr);
-        break;
-    case FIELD_MODEL_CHI_OPT:
-        mParams.fieldModelChi = std::atof(optPtr);
-        break;
-    case FIELD_INFINITY_POS_MULTIPLIER_OPT:
-        mParams.fieldInfinityPosMultiplier = std::atof(optPtr);
-        break;
-    case EQUAL_AXIS_OPT:
-        mParams.isEqualAxis = true;
-        break;
-    case NONDIM_OPT:
-        mParams.isNonDim = true;
-        break;
-    case PEDANTIC_RIGHT_SWEEP_OPT:
-        mParams.isRightSweepPedantic = true;
-        break;
-    case MAIN_PROBLEM_OPT:
-        mParams.isMainProblemEnabled = true;
-        break;
-    case FIELD_MODEL_PROBLEM_OPT:
-        mParams.isFieldModelProblemEnabled = true;
-        break;
-    default:
-        break;
+        case WINDOW_WIDTH_OPT:
+            mParams.windowWidth = std::atoi(optPtr);
+            break;
+
+        case WINDOW_HEIGHT_OPT:
+            mParams.windowHeight = std::atoi(optPtr);
+            break;
+
+        case W_PARAM_TARGET_OPT:
+            mParams.wTarget = std::atof(optPtr);
+            break;
+
+        case CHI_INITIAL_OPT:
+            mParams.chiInitial = std::atof(optPtr);
+            break;
+
+        case CHI_TARGET_OPT:
+            mParams.chiTarget = std::atof(optPtr);
+            break;
+
+        case RELAXATION_PARAM_INITIAL_OPT:
+            mParams.relaxationParamInitial = std::atof(optPtr);
+            break;
+
+        case RELAXATION_PARAM_MIN_OPT:
+            mParams.relaxationParamMin = std::atof(optPtr);
+            break;
+
+        case ACCURACY_OPT:
+            mParams.accuracy = std::atof(optPtr);
+            break;
+
+        case SPLITS_NUM_OPT:
+            mParams.splitsNum = std::atoi(optPtr);
+            break;
+
+        case ITERATIONS_MAX_NUM_OPT:
+            mParams.iterationsMaxNum = std::atoi(optPtr);
+            break;
+
+        case W_RESULTS_NUM_OPT:
+            mParams.resultsNumW = std::atoi(optPtr);
+            break;
+
+        case CHI_RESULTS_NUM_OPT:
+            mParams.resultsNumChi = std::atoi(optPtr);
+            break;
+
+        case FIELD_SURFACE_SPLITS_NUM_OPT:
+            mParams.fieldSurfaceSplitsNum = std::atoi(optPtr);
+            break;
+
+        case FIELD_INTERNAL_SPLITS_NUM_OPT:
+            mParams.fieldInternalSplitsNum = std::atoi(optPtr);
+            break;
+
+        case FIELD_EXTERNAL_SPLITS_NUM_OPT:
+            mParams.fieldExternalSplitsNum = std::atoi(optPtr);
+            break;
+
+        case FIELD_ACCURACY_OPT:
+            mParams.fieldAccuracy = std::atof(optPtr);
+            break;
+
+        case FIELD_ITERATIONS_MAX_NUM_OPT:
+            mParams.fieldIterationsMaxNum = std::atoi(optPtr);
+            break;
+
+        case FIELD_RELAXATION_PARAM_INITIAL_OPT:
+            mParams.fieldRelaxParamInitial = std::atof(optPtr);
+            break;
+
+        case FIELD_RELAXATION_PARAM_MIN_OPT:
+            mParams.fieldRelaxParamMin = std::atof(optPtr);
+            break;
+
+        case FIELD_MODEL_RELAXATION_PARAM_INITIAL_OPT:
+            mParams.fieldModelRelaxParamInitial = std::atof(optPtr);
+            break;
+
+        case FIELD_MODEL_RELAXATION_PARAM_MIN_OPT:
+            mParams.fieldModelRelaxParamMin = std::atof(optPtr);
+            break;
+
+        case FIELD_MODEL_CHI_OPT:
+            mParams.fieldModelChi = std::atof(optPtr);
+            break;
+
+        case FIELD_INFINITY_POS_MULTIPLIER_OPT:
+            mParams.fieldInfinityPosMultiplier = std::atof(optPtr);
+            break;
+
+        case LABEL_X_OPT:
+            mParams.xLabel = readStringValue(optPtr);
+            break;
+
+        case LABEL_Y_OPT:
+            mParams.yLabel = readStringValue(optPtr);
+            break;
+
+        case LABEL_POTENTIAL_OPT:
+            mParams.potentialLabel = readStringValue(optPtr);
+            break;
+
+        case LABEL_ERROR_OPT:
+            mParams.errorLabel = readStringValue(optPtr);
+            break;
+        
+        case EQUAL_AXIS_OPT:
+            mParams.isEqualAxis = true;
+            break;
+
+        case DIMENSIONLESS_OPT:
+            mParams.isDimensionless = true;
+            break;
+
+        case PEDANTIC_RIGHT_SWEEP_OPT:
+            mParams.isRightSweepPedantic = true;
+            break;
+
+        case MAIN_PROBLEM_OPT:
+            mParams.isMainProblemEnabled = true;
+            break;
+
+        case FIELD_MODEL_PROBLEM_OPT:
+            mParams.isFieldModelProblemEnabled = true;
+            break;
+
+        case PLOT_FLUID_OPT:
+            mParams.isPlotFluidSurfaceEnabled = true;
+            break;
+
+        case PLOT_FIELD_OPT:
+            mParams.isPlotFieldEnabled = true;
+            break;
+
+        case PLOT_FIELD_GRID_OPT:
+            mParams.isPlotFieldGridEnabled = true;
+            break;
+
+        case PLOT_FIELD_ISOLINES_OPT:
+            mParams.isPlotFieldIsolinesEnabled = true;
+            break;
+
+        case PLOT_FIELD_ERROR_OPT:
+            mParams.isPlotFieldErrorEnabled = true;
+            break;
+
+        case PLOT_HEGHT_COEFS_OPT:
+            mParams.isPlotHeightCoefsEnabled = true;
+            break;
+
+        default:
+            break;
     }
+}
+
+#pragma endregion
+
+
+#pragma region Values reading
+
+std::string ProgramOptsHandler::readStringValue(char* optPtr) const noexcept(false)
+{
+    std::string result;
+
+    if (*optPtr != '\'')
+    {
+        throw std::runtime_error("Unrecognized string option semantic");
+    }
+
+    optPtr++;
+
+    while (*optPtr != '\'' && *optPtr != '\0')
+    {
+        if (*optPtr == '\\' && *(optPtr + 1) == '\'')
+        {
+            optPtr++;
+        }
+
+        result += *optPtr;
+        optPtr++;
+    }
+
+    return result;
 }
 
 #pragma endregion

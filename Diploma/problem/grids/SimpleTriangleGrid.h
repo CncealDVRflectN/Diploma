@@ -15,7 +15,7 @@ typedef struct st_grid_params_t
 {
     arr_size_t surfaceSplitsNum;
     arr_size_t internalSplitsNum;
-    arr_size_t infSplitsNum;
+    arr_size_t externalSplitsNum;
     double infMultiplier;
 } STGridParams;
 

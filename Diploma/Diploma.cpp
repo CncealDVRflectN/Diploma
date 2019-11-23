@@ -1,5 +1,11 @@
 ﻿#include <iostream>
 #include "ProgramOptsHandler.h"
+#include "PlotSTGrid.h"
+#include "PlotFluid.h"
+#include "PlotHeightCoefs.h"
+#include "PlotFieldIsolines.h"
+#include "PlotField.h"
+#include "PlotModelFieldError.h"
 
 
 void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution& solution)
@@ -8,29 +14,64 @@ void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution&
 
     ResultCode resultCode = solution.calcFieldModelProblem();
 
-    if (resultCode != FIELD_SUCCESS)
+    if (resultCode != ResultCode::FIELD_SUCCESS)
     {
-        printf("Could not calculate field model problem\n");
+        printf("WARNING: Could not calculate field model problem\n\n");
         return;
     }
 
-    PlotSTGridParams plotGridParams = optsHandler.gridPlotParameters();
-    PlotSTGrid plotGrid(plotGridParams);
+    std::filesystem::path fieldPath = intermediate_file_path(generate_file_name("field-model", "dat", "-"));
+    std::filesystem::path errorPath = intermediate_file_path(generate_file_name("field-model", "dat", "-", "error"));
+    std::filesystem::path gridIntPath = intermediate_file_path(generate_file_name("field-model", "dat", "-", "grid", "int"));
+    std::filesystem::path gridExtPath = intermediate_file_path(generate_file_name("field-model", "dat", "-", "grid", "ext"));
 
-    PlotIsolinesParams plotIsolinesParams = optsHandler.isolinesPlotParameters();
-    PlotIsolines plotIsolines(plotIsolinesParams);
+    printf("Saving results to files...\n");
 
-    double volumeNonDimMul = (programParams.isNonDim) ? solution.volumeNonDimMul() : 1.0;
+    solution.writeFieldData(fieldPath);
+    solution.writeFieldErrorData(errorPath);
+    solution.writeInternalGridData(gridIntPath);
+    solution.writeExternalGridData(gridExtPath);
 
-    printf("Plotting grid...\n");
-    plotGrid.plot(solution.field().grid(), volumeNonDimMul);
-    printf("Plotting isolines...\n\n");
-    plotIsolines.plot(solution.field().grid(), solution.field().lastValidResult(), volumeNonDimMul);
+    std::filesystem::path fluidPath = solution.writeFluidData();
+
+    printf("Results saved\n\n");
+
+    PlotParams plotParams = optsHandler.plotParameters();
+    PlotSTGrid plotGrid(plotParams);
+    PlotFieldIsolines plotFieldIsolines(plotParams);
+    PlotField plotField(plotParams);
+    PlotModelFieldError plotError(plotParams);
+
+    if (programParams.isPlotFieldGridEnabled)
+    {
+        printf("Plotting magnetic field grid...\n\n");
+        plotGrid.plot(gridIntPath, gridExtPath);
+    }
+
+    if (programParams.isPlotFieldIsolinesEnabled)
+    {
+        printf("Plotting magnetic field isolines...\n\n");
+        plotFieldIsolines.plot(fieldPath, fluidPath);
+    }
+
+    if (programParams.isPlotFieldEnabled)
+    {
+        printf("Plotting magnetic field...\n\n");
+        plotField.plot(fieldPath, fluidPath);
+    }
+
+    if (programParams.isPlotFieldErrorEnabled)
+    {
+        printf("Plotting magnetic field error...\n\n");
+        plotError.plot(errorPath, fluidPath);
+    }
 
     system("pause");
 
     plotGrid.close();
-    plotIsolines.close();
+    plotFieldIsolines.close();
+    plotField.close();
+    plotError.close();
 }
 
 
@@ -44,7 +85,7 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
         return;
     }
 
-    char buffer[256];
+    PlotParams plotsParams = optsHandler.plotParameters();
     double curChi = programParams.chiInitial;
     double stepChi = 0.0;
 
@@ -59,85 +100,100 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
         curChi = programParams.chiInitial;
     }
 
-    PlotLinesParams heightCoefsPlotParams = optsHandler.heightCoefsPlotParameters();
-    PlotLines heightCoefsPlot(heightCoefsPlotParams);
-
-    std::vector<PlotLine> heightCoefsLines;
+    std::vector<std::filesystem::path> heightCoefsDatas;
 
     for (int i = 0; i < programParams.resultsNumChi; i++)
     {
         std::vector<Vector2<double>> heightCoefs;
-        std::vector<PlotLine> surfaceLines;
-        ResultCode resultCode = SUCCESS;
+        std::vector<std::filesystem::path> fluidDatas;
+        ResultCode resultCode = ResultCode::SUCCESS;
         double volumeNonDimMul = 1.0;
-
-        sprintf(buffer, "Осесимметричная задача (chi = %.1lf)", curChi);
-
-        PlotLinesParams resultsPlotParams = optsHandler.surfacePlotParametes(buffer);
-        PlotLines resultsPlot(resultsPlotParams);
 
         solution.resetIterationsCounters();
         solution.setChi(curChi);
         solution.calcInitials();
         resultCode = solution.calcResult(0.0);
 
-        if ((resultCode == SUCCESS && programParams.resultsNumW > 1) || resultCode == TARGET_REACHED)
+        if ((resultCode == ResultCode::SUCCESS && programParams.resultsNumW > 1) || resultCode == ResultCode::TARGET_REACHED)
         {
-            sprintf(buffer, "W = %.2lf", solution.currentW());
-
-            volumeNonDimMul = (programParams.isNonDim) ? solution.volumeNonDimMul() : 1.0;
-            surfaceLines.push_back({ buffer, volumeNonDimMul * solution.fluidSurface() });
+            fluidDatas.push_back(solution.writeFluidData());
             heightCoefs.push_back({ solution.currentW(), solution.heightCoef() });
         }
 
-        while (resultCode == SUCCESS)
+        while (resultCode == ResultCode::SUCCESS)
         {
             resultCode = solution.calcNextResult();
 
-            if (resultCode == SUCCESS || resultCode == TARGET_REACHED)
+            if (resultCode == ResultCode::SUCCESS || resultCode == ResultCode::TARGET_REACHED)
             {
-                sprintf(buffer, "W = %.2lf", solution.currentW());
-
-                volumeNonDimMul = (programParams.isNonDim) ? solution.volumeNonDimMul() : 1.0;
-                surfaceLines.push_back({ buffer, volumeNonDimMul * solution.fluidSurface() });
+                fluidDatas.push_back(solution.writeFluidData());
                 heightCoefs.push_back({ solution.currentW(), solution.heightCoef() });
             }
         }
 
-        sprintf(buffer, "chi = %.2lf", curChi);
-        heightCoefsLines.push_back({ buffer, heightCoefs });
-
-        if (resultCode != TARGET_REACHED)
+        if (resultCode != ResultCode::TARGET_REACHED)
         {
             printf("Target W parameter can't be reached\n\n");
             system("pause");
             return;
         }
 
-        PlotSTGridParams plotGridParams = optsHandler.gridPlotParameters();
-        PlotSTGrid plotGrid(plotGridParams);
+        printf("Saving results to files...\n");
 
-        PlotIsolinesParams plotIsolinesParams = optsHandler.isolinesPlotParameters();
-        PlotIsolines plotIsolines(plotIsolinesParams);
+        std::filesystem::path fieldData = solution.writeFieldData();
+        std::filesystem::path internalGridData = solution.writeInternalGridData();
+        std::filesystem::path externalGridData = solution.writeExternalGridData();
+        
+        heightCoefsDatas.push_back(write_height_coefs_data(curChi, heightCoefs));
 
-        printf("Plotting surface lines...\n");
-        resultsPlot.plot(surfaceLines);
-        printf("Plotting grid...\n");
-        plotGrid.plot(solution.field().grid(), volumeNonDimMul);
-        printf("Plotting isolines...\n\n");
-        plotIsolines.plot(solution.field().grid(), solution.field().lastValidResult(), volumeNonDimMul);
+        printf("Results saved\n\n");
+
+        PlotFluid fluidPlot(plotsParams);
+        PlotSTGrid gridPlot(plotsParams);
+        PlotFieldIsolines isolinesPlot(plotsParams);
+        PlotField fieldPlot(plotsParams);
+
+        if (programParams.isPlotFluidSurfaceEnabled)
+        {
+            printf("Plotting fluid surface...\n\n");
+            fluidPlot.plot(fluidDatas);
+        }
+
+        if (programParams.isPlotFieldGridEnabled)
+        {
+            printf("Plotting magnetic field grid...\n\n");
+            gridPlot.plot(internalGridData, externalGridData);
+        }
+
+        if (programParams.isPlotFieldIsolinesEnabled)
+        {
+            printf("Plotting magnetic field isolines...\n\n");
+            isolinesPlot.plot(fieldData, fluidDatas.back());
+        }
+
+        if (programParams.isPlotFieldEnabled)
+        {
+            printf("Plotting magnetic field...\n\n");
+            fieldPlot.plot(fieldData, fluidDatas.back());
+        }
 
         system("pause");
 
-        resultsPlot.close();
-        plotGrid.close();
-        plotIsolines.close();
+        fluidPlot.close();
+        gridPlot.close();
+        isolinesPlot.close();
+        fieldPlot.close();
 
         curChi += stepChi;
     }
 
-    printf("Plotting height coefficient lines...\n\n");
-    heightCoefsPlot.plot(heightCoefsLines);
+    PlotHeightCoefs heightCoefsPlot(plotsParams);
+
+    if (programParams.isPlotHeightCoefsEnabled)
+    {
+        printf("Plotting fluid height to width ratios...\n\n");
+        heightCoefsPlot.plot(heightCoefsDatas);
+    }
 
     system("pause");
 
@@ -148,6 +204,10 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
 int main(int argc, char** argv)
 {
     ProgramOptsHandler optsHandler;
+
+    printf("Clearing intermediate files...\n");
+    clear_intermediate_files();
+    printf("Intermediate files cleared\n\n");
 
     printf("Parsing options...\n");
     optsHandler.parseOpts(argc, argv);

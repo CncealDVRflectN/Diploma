@@ -2,14 +2,14 @@
 #include "math_ext.h"
 
 
-static const Array<Vector2<arr_size_t>> OFFSETS_TABLE = { {-1,  1}, 
-										                  { 0,  1}, 
-										                  { 1,  0}, 
-										                  { 1, -1}, 
-										                  { 0, -1}, 
-										                  {-1,  0}, 
-										                  {-1,  1}, 
-										                  { 0,  1} };
+static const Array<Vector2<arr_size_t>> OFFSETS_TABLE = { {-1,  1},
+                                                          { 0,  1}, 
+                                                          { 1,  0}, 
+                                                          { 1, -1}, 
+                                                          { 0, -1}, 
+                                                          {-1,  0}, 
+                                                          {-1,  1}, 
+                                                          { 0,  1} };
 
 
 #pragma region Constructors
@@ -398,12 +398,12 @@ ResultCode MagneticField::calcRelaxation()
     if (counter >= mParams.iterationsNumMax)
     {
         printf("Field relaxation iterations limit exceeded\n\n");
-        return FIELD_ITERATIONS_LIMIT_EXCEEDED;
+        return ResultCode::FIELD_ITERATIONS_LIMIT_EXCEEDED;
     }
     else if (!isApproximationValid(mNextApprox))
     {
         printf("Field relaxation invalid result\n\n");
-        return FIELD_INVALID_RESULT;
+        return ResultCode::FIELD_INVALID_RESULT;
     }
     else
     {
@@ -414,7 +414,7 @@ ResultCode MagneticField::calcRelaxation()
 
     printf("Field relaxation calculated\n\n");
 
-    return FIELD_SUCCESS;
+    return ResultCode::FIELD_SUCCESS;
 }
 
 #pragma endregion
