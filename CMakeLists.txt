@@ -20,7 +20,6 @@ if(MSVC)
 
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} \
                                         /O2 \
-                                        /arch:AVX2 \
                                         /GF \
                                         /GL \
                                         /Gw \
@@ -33,7 +32,6 @@ if(MSVC)
 
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
                                  /O2 \
-                                 /arch:AVX2 \
                                  /GF \
                                  /GL \
                                  /Gw \
@@ -46,14 +44,13 @@ if(MSVC)
 else()
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
                          -Wall \
-                         -Wextra \
-                         -Werror")
+                         -Wextra")
 
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
                                -O0")
 
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} \
-                                        -O1")
+                                        -O2")
 
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
                                  -O3")

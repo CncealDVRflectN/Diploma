@@ -55,8 +55,8 @@ public:
     void swap(Matrix<T>& other);
 
 
-
-    friend T norm<T>(const Matrix<T>& a, const Matrix<T>& b);
+    template <typename K>
+    friend K norm(const Matrix<K>& a, const Matrix<K>& b);
 
 private:
     Array<T> mElements;

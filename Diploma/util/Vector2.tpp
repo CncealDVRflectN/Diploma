@@ -1,6 +1,24 @@
 #include "Vector2.h"
+#include "type_traits_ext.h"
 #include "debug_info.h"
 
+
+#pragma region Type traits extension
+
+template <typename T>
+struct is_arithmetic_ext<Vector2<T>>
+{
+    static const bool value = std::is_arithmetic<T>::value;
+};
+
+
+template <typename T>
+struct is_swappable_ext<Vector2<T>>
+{
+    static const bool value = std::is_swappable<T>::value;
+};
+
+#pragma endregion
 
 
 #pragma region Constructors

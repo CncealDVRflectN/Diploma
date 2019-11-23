@@ -1,5 +1,6 @@
 .git
 
+.idea/
 .vs/Diploma
 .vs/ProjectSettings.json
 .vs/*.sqlite
@@ -8,3 +9,5 @@
 *.db
 *.opendb
 *.suo
+
+cmake-build-debug/

@@ -2,6 +2,25 @@
 #include "debug_info.h"
 
 
+
+#pragma region Type traits extension
+
+template <typename T>
+struct is_arithmetic_ext<Matrix<T>>
+{
+    static const bool value = std::is_arithmetic<T>::value;
+};
+
+
+template <typename T>
+struct is_swappable_ext<Matrix<T>>
+{
+    static const bool value = std::is_swappable<T>::value;
+};
+
+#pragma endregion
+
+
 #pragma region Constructors
 
 template <typename T>
@@ -32,7 +51,7 @@ Matrix<T>::Matrix(const Array<T>& array, arr_size_t rowsNum, arr_size_t columnsN
                                                                                       mRowsNum(rowsNum), 
                                                                                       mColumnsNum(columnsNum) 
 {
-    static_assert(array.size() == rowsNum * columnsNum, ("Matrix with %d mRows and %d columns cannot be created from Array of size %d",
+    assert_message(array.size() == rowsNum * columnsNum, ("Matrix with %d mRows and %d columns cannot be created from Array of size %d",
                                                          mRowsNum, mColumnsNum, array.size()));
 }
 
@@ -298,7 +317,7 @@ T norm(const Matrix<T>& a, const Matrix<T>& b)
 {
     static_assert(is_arithmetic_ext<T>::value, "Norm cannot be calculated for Matrices of this type");
     assert_message(a.rowsNum() == b.rowsNum() && a.columnsNum() == b.columnsNum(), 
-                   "Norm cannot be calculated for Matrices of different dimentions");
+                   "Norm cannot be calculated for Matrices of different dimensions");
     return norm(a.mElements, b.mElements);
 }
 
