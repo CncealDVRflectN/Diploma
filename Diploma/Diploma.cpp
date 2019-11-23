@@ -42,10 +42,29 @@ void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution&
     PlotField plotField(plotParams);
     PlotModelFieldError plotError(plotParams);
 
-    plotGrid.plot(gridIntPath, gridExtPath);
-    plotFieldIsolines.plot(fieldPath, fluidPath);
-    plotField.plot(fieldPath, fluidPath);
-    plotError.plot(errorPath, fluidPath);
+    if (programParams.isPlotFieldGridEnabled)
+    {
+        printf("Plotting magnetic field grid...\n\n");
+        plotGrid.plot(gridIntPath, gridExtPath);
+    }
+
+    if (programParams.isPlotFieldIsolinesEnabled)
+    {
+        printf("Plotting magnetic field isolines...\n\n");
+        plotFieldIsolines.plot(fieldPath, fluidPath);
+    }
+
+    if (programParams.isPlotFieldEnabled)
+    {
+        printf("Plotting magnetic field...\n\n");
+        plotField.plot(fieldPath, fluidPath);
+    }
+
+    if (programParams.isPlotFieldErrorEnabled)
+    {
+        printf("Plotting magnetic field error...\n\n");
+        plotError.plot(errorPath, fluidPath);
+    }
 
     system("pause");
 
@@ -134,12 +153,29 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
         PlotFieldIsolines isolinesPlot(plotsParams);
         PlotField fieldPlot(plotsParams);
 
-        printf("Plotting fluid, grid and field isolines...\n\n");
+        if (programParams.isPlotFluidSurfaceEnabled)
+        {
+            printf("Plotting fluid surface...\n\n");
+            fluidPlot.plot(fluidDatas);
+        }
 
-        fluidPlot.plot(fluidDatas);
-        gridPlot.plot(internalGridData, externalGridData);
-        isolinesPlot.plot(fieldData, fluidDatas.back());
-        fieldPlot.plot(fieldData, fluidDatas.back());
+        if (programParams.isPlotFieldGridEnabled)
+        {
+            printf("Plotting magnetic field grid...\n\n");
+            gridPlot.plot(internalGridData, externalGridData);
+        }
+
+        if (programParams.isPlotFieldIsolinesEnabled)
+        {
+            printf("Plotting magnetic field isolines...\n\n");
+            isolinesPlot.plot(fieldData, fluidDatas.back());
+        }
+
+        if (programParams.isPlotFieldEnabled)
+        {
+            printf("Plotting magnetic field...\n\n");
+            fieldPlot.plot(fieldData, fluidDatas.back());
+        }
 
         system("pause");
 
@@ -153,8 +189,11 @@ void calculateMainProblem(const ProgramOptsHandler& optsHandler, Solution& solut
 
     PlotHeightCoefs heightCoefsPlot(plotsParams);
 
-    printf("Plotting fluid height to width ratios...\n\n");
-    heightCoefsPlot.plot(heightCoefsDatas);
+    if (programParams.isPlotHeightCoefsEnabled)
+    {
+        printf("Plotting fluid height to width ratios...\n\n");
+        heightCoefsPlot.plot(heightCoefsDatas);
+    }
 
     system("pause");
 

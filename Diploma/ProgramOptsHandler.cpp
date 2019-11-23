@@ -35,7 +35,13 @@ enum OptsIds
     LABEL_X_OPT,
     LABEL_Y_OPT,
     LABEL_POTENTIAL_OPT,
-    LABEL_ERROR_OPT
+    LABEL_ERROR_OPT,
+    PLOT_FLUID_OPT,
+    PLOT_FIELD_OPT,
+    PLOT_FIELD_ISOLINES_OPT,
+    PLOT_FIELD_ERROR_OPT,
+    PLOT_FIELD_GRID_OPT,
+    PLOT_HEGHT_COEFS_OPT
 };
 
 
@@ -72,6 +78,12 @@ static const LongOpt LONG_OPTS[] = {
     {"label-y",                             LABEL_Y_OPT},
     {"label-potential",                     LABEL_POTENTIAL_OPT},
     {"label-error",                         LABEL_ERROR_OPT},
+    {"plot-fluid",                          PLOT_FLUID_OPT},
+    {"plot-field",                          PLOT_FIELD_OPT},
+    {"plot-field-isolines",                 PLOT_FIELD_ISOLINES_OPT},
+    {"plot-field-error",                    PLOT_FIELD_ERROR_OPT},
+    {"plot-field-grid",                     PLOT_FIELD_GRID_OPT},
+    {"plot-height-coefs",                   PLOT_HEGHT_COEFS_OPT},
     {nullptr,					            0}
 };
 
@@ -113,6 +125,12 @@ ProgramOptsHandler::ProgramOptsHandler()
     mParams.isRightSweepPedantic = false;
     mParams.isMainProblemEnabled = false;
     mParams.isFieldModelProblemEnabled = false;
+    mParams.isPlotFluidSurfaceEnabled = false;
+    mParams.isPlotFieldEnabled = false;
+    mParams.isPlotFieldIsolinesEnabled = false;
+    mParams.isPlotFieldGridEnabled = false;
+    mParams.isPlotFieldErrorEnabled = false;
+    mParams.isPlotHeightCoefsEnabled = false;
 }
 
 
@@ -343,6 +361,30 @@ void ProgramOptsHandler::handleOpt(int optId, char* optPtr)
 
         case FIELD_MODEL_PROBLEM_OPT:
             mParams.isFieldModelProblemEnabled = true;
+            break;
+
+        case PLOT_FLUID_OPT:
+            mParams.isPlotFluidSurfaceEnabled = true;
+            break;
+
+        case PLOT_FIELD_OPT:
+            mParams.isPlotFieldEnabled = true;
+            break;
+
+        case PLOT_FIELD_GRID_OPT:
+            mParams.isPlotFieldGridEnabled = true;
+            break;
+
+        case PLOT_FIELD_ISOLINES_OPT:
+            mParams.isPlotFieldIsolinesEnabled = true;
+            break;
+
+        case PLOT_FIELD_ERROR_OPT:
+            mParams.isPlotFieldErrorEnabled = true;
+            break;
+
+        case PLOT_HEGHT_COEFS_OPT:
+            mParams.isPlotHeightCoefsEnabled = true;
             break;
 
         default:

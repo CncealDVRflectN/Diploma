@@ -39,6 +39,12 @@ typedef struct program_params_t
     bool isRightSweepPedantic;
     bool isMainProblemEnabled;
     bool isFieldModelProblemEnabled;
+    bool isPlotFluidSurfaceEnabled;
+    bool isPlotFieldGridEnabled;
+    bool isPlotFieldEnabled;
+    bool isPlotFieldIsolinesEnabled;
+    bool isPlotFieldErrorEnabled;
+    bool isPlotHeightCoefsEnabled;
 } ProgramParams;
 
 
