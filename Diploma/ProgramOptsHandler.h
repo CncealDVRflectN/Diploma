@@ -10,6 +10,7 @@ typedef struct program_params_t
     std::string xLabel;
     std::string yLabel;
     std::string potentialLabel;
+    std::string errorLabel;
     double wTarget;
     double relaxationParamInitial;
     double relaxationParamMin;

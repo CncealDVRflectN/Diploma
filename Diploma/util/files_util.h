@@ -48,6 +48,21 @@ typedef struct field_result_params_t
 } FieldResultParams;
 
 
+typedef struct field_model_params_t
+{
+    std::string xLabel;
+    std::string yLabel;
+    std::string errorLabel;
+    double errorMin;
+    double errorMax;
+    double chi;
+    int surfaceSplitsNum;
+    int internalSplitsNum;
+    int externalSplitsNum;
+    bool isDimensionless;
+} FieldModelParams;
+
+
 #pragma region Paths generation
 
 inline std::filesystem::path output_path()
@@ -353,6 +368,70 @@ inline std::filesystem::path write_field_data(const FieldResultParams& fieldPara
 }
 
 
+static void write_field_error_data(const std::filesystem::path& path,
+                                   const FieldModelParams& modelParams,
+                                   const Matrix<Vector2<double>>& points,
+                                   const Matrix<double>& error)
+{
+    std::ofstream output(path);
+
+    if (!output.good())
+    {
+        throw std::runtime_error("Cannot write data to file: " + path.string());
+    }
+
+    arr_size_t rowsNum = points.rowsNum();
+    arr_size_t columnsNum = points.columnsNum();
+
+    write_comment_line(output, COLUMN_WIDTH, "Chi",
+                                             "Surface splits",
+                                             "Internal splits",
+                                             "External splits",
+                                             "Error min",
+                                             "Error max",
+                                             "Dimensionless",
+                                             "X Label",
+                                             "Y Label",
+                                             "Error label");
+    write_comment_line(output, COLUMN_WIDTH, modelParams.chi,
+                                             modelParams.surfaceSplitsNum,
+                                             modelParams.internalSplitsNum,
+                                             modelParams.externalSplitsNum,
+                                             modelParams.errorMin,
+                                             modelParams.errorMax,
+                                             modelParams.isDimensionless,
+                                             modelParams.xLabel,
+                                             modelParams.yLabel,
+                                             modelParams.errorLabel);
+    write_data(output, '#', 10 * COLUMN_WIDTH, "") << std::endl;
+    write_comment_line(output, COLUMN_WIDTH, modelParams.xLabel, modelParams.yLabel, modelParams.errorLabel);
+
+    for (arr_size_t i = 0; i < rowsNum; i++)
+    {
+        for (arr_size_t j = 0; j < columnsNum; j++)
+        {
+            write_offsetted_data_line(output, DATA_LINE_OFFSET, COLUMN_WIDTH, points(i, j).x, points(i, j).y, error(i, j));
+        }
+    }
+
+    output.flush();
+    output.close();
+}
+
+
+inline std::filesystem::path write_field_error_data(const FieldModelParams& modelParams,
+                                                    const Matrix<Vector2<double>>& points,
+                                                    const Matrix<double>& error)
+{
+    std::string fileName = generate_file_name("field", "dat", "-", "error", modelParams.chi);
+    std::filesystem::path outputPath = intermediate_file_path(fileName);
+
+    write_field_error_data(outputPath, modelParams, points, error);
+
+    return outputPath;
+}
+
+
 static void write_internal_grid_data(const std::filesystem::path& path,
                                      const FieldResultParams& fieldParams,
                                      const Matrix<Vector2<double>>& points) noexcept(false)
@@ -579,6 +658,32 @@ static FieldResultParams read_field_params(const std::filesystem::path& path) no
     input >> result.chi >> result.surfaceSplitsNum >> result.internalSplitsNum >> result.externalSplitsNum 
           >> result.potentialMin >> result.potentialMax >> result.fluidTopPotential 
           >> result.isDimensionless >> result.xLabel >> result.yLabel >> result.potentialLabel;
+
+    input.close();
+
+    return result;
+}
+
+
+static FieldModelParams read_field_model_params(const std::filesystem::path& path) noexcept(false)
+{
+    std::ifstream input(path);
+
+    if (!input.good())
+    {
+        throw std::runtime_error("Cannot read data from file: " + path.string());
+    }
+
+    FieldModelParams result;
+
+    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // skipping first header line
+    input.ignore(std::numeric_limits<std::streamsize>::max(), COMMENT_CHARACTER); // skipping comment characters
+
+    input >> std::boolalpha;
+
+    input >> result.chi >> result.surfaceSplitsNum >> result.internalSplitsNum >> result.externalSplitsNum
+          >> result.errorMin >> result.errorMax
+          >> result.isDimensionless >> result.xLabel >> result.yLabel >> result.errorLabel;
 
     input.close();
 

@@ -47,7 +47,10 @@ Solution::Solution(const ProblemParams& params) : mParams(params),
                                                   mField(getFieldParams(params)), 
                                                   mLastValidFluidSurface(mFluid.pointsNum()), 
                                                   mLastValidFieldGrid(mField.grid().parameters()), 
-                                                  mLastValidFieldPotential(mField.grid().rowsNum(), mField.grid().columnsNum())
+                                                  mLastValidFieldPotential(mField.grid().rowsNum(), mField.grid().columnsNum()),
+                                                  mLastFieldDiscrepancy(mField.grid().rowsNum(), mField.grid().columnsNum()),
+                                                  mLastFieldDiscrepancyMin(std::numeric_limits<double>::max()),
+                                                  mLastFieldDiscrepancyMax(std::numeric_limits<double>::min())
 {
     if (params.resultsNum == 1)
     {
@@ -158,6 +161,25 @@ FieldResultParams Solution::fieldResultParams() const
     return resultParams;
 }
 
+
+FieldModelParams Solution::fieldModelParams() const
+{
+    FieldModelParams resultParams;
+
+    resultParams.xLabel = mParams.xLabel;
+    resultParams.yLabel = mParams.yLabel;
+    resultParams.errorLabel = mParams.potentialLabel;
+    resultParams.errorMin = mLastFieldDiscrepancyMin;
+    resultParams.errorMax = mLastFieldDiscrepancyMax;
+    resultParams.chi = mParams.fieldModelChi;
+    resultParams.surfaceSplitsNum = mParams.gridParams.surfaceSplitsNum;
+    resultParams.internalSplitsNum = mParams.gridParams.internalSplitsNum;
+    resultParams.externalSplitsNum = mParams.gridParams.externalSplitsNum;
+    resultParams.isDimensionless = mParams.isDimensionless;
+
+    return resultParams;
+}
+
 #pragma endregion
 
 
@@ -188,6 +210,20 @@ void Solution::writeFieldData(const std::filesystem::path& fieldDataPath) const
 {
     double multiplier = (mParams.isDimensionless) ? volumeNonDimMul() : 1.0;
     write_field_data(fieldDataPath, fieldResultParams(), multiplier * mLastValidFieldGrid.rawPoints(), mLastValidFieldPotential);
+}
+
+
+std::filesystem::path Solution::writeFieldErrorData() const
+{
+    double multiplier = (mParams.isDimensionless) ? volumeNonDimMul() : 1.0;
+    return write_field_error_data(fieldModelParams(), multiplier * mLastValidFieldGrid.rawPoints(), mLastFieldDiscrepancy);
+}
+
+
+void Solution::writeFieldErrorData(const std::filesystem::path& errorDataPath) const
+{
+    double multiplier = (mParams.isDimensionless) ? volumeNonDimMul() : 1.0;
+    write_field_error_data(errorDataPath, fieldModelParams(), multiplier * mLastValidFieldGrid.rawPoints(), mLastFieldDiscrepancy);
 }
 
 
@@ -255,10 +291,12 @@ void Solution::fieldModelAction(const MagneticParams& params,
     double b = 3.0 / (3.0 + params.chi);
     double volume = M_PI * M_PI * M_PI;
     double discrepancy = 0.0;
-    double maxDiscrepancy = 0.0;
     arr_size_t gridRowsNum = grid.rowsNum();
     arr_size_t gridColumnsNum = grid.columnsNum();
     arr_size_t gridSurfaceColumnIndex = grid.surfaceColumnsIndex();
+
+    mLastFieldDiscrepancyMin = std::numeric_limits<double>::max();
+    mLastFieldDiscrepancyMax = std::numeric_limits<double>::min();
 
     printf("\n=========================== FIELD DISCREPANCY ===========================\n");
 
@@ -267,26 +305,36 @@ void Solution::fieldModelAction(const MagneticParams& params,
         for (arr_size_t j = 0; j < gridSurfaceColumnIndex; j++)
         {
             discrepancy = std::abs(nextApprox(i, j) - b * grid(i, j).z);
-            maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+            mLastFieldDiscrepancy(i, j) = discrepancy;
+            mLastFieldDiscrepancyMin = std::min(mLastFieldDiscrepancyMin, discrepancy);
+            mLastFieldDiscrepancyMax = std::max(mLastFieldDiscrepancyMax, discrepancy);
+
             printf("%.3e ", discrepancy);
         }
 
         discrepancy = std::abs(nextApprox(i, gridSurfaceColumnIndex) - b * grid(i, gridSurfaceColumnIndex).z);
-        maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+        mLastFieldDiscrepancyMin = std::min(mLastFieldDiscrepancyMin, discrepancy);
+        mLastFieldDiscrepancyMax = std::max(mLastFieldDiscrepancyMax, discrepancy);
+        mLastFieldDiscrepancy(i, gridSurfaceColumnIndex) = discrepancy;
+
         printf("| %.3e | ", discrepancy);
 
         for (arr_size_t j = gridSurfaceColumnIndex + 1; j < gridColumnsNum; j++)
         {
             double tmp = volume * std::pow(grid(i, j).r * grid(i, j).r + grid(i, j).z * grid(i, j).z, 1.5);
+
             discrepancy = std::abs(nextApprox(i, j) - grid(i, j).z * (1.0 - (1.0 - b) / tmp));
-            maxDiscrepancy = std::max(maxDiscrepancy, discrepancy);
+            mLastFieldDiscrepancyMin = std::min(mLastFieldDiscrepancyMin, discrepancy);
+            mLastFieldDiscrepancyMax = std::max(mLastFieldDiscrepancyMax, discrepancy);
+            mLastFieldDiscrepancy(i, j) = discrepancy;
+
             printf("%.3e ", discrepancy);
         }
 
         printf("\n");
     }
 
-    printf("\nMax discrepancy: %.3e \n\n", maxDiscrepancy);
+    printf("\nMax discrepancy: %.3e \n\n", mLastFieldDiscrepancyMax);
 }
 
 #pragma endregion

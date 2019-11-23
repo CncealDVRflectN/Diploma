@@ -17,11 +17,11 @@ void PlotSTGrid::plot(const std::filesystem::path& internalDataPath, const std::
     FieldResultParams params = read_field_grid_params(internalDataPath);
 
     mPipe.write("set term wxt size %u, %u enhanced font 'Verdana,10'\n", mParams.windowWidth, mParams.windowHeight);
+    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
     mPipe.write("load '%s'\n", plot_config_path("st-grid.cfg").string().c_str());
-    mPipe.write("set title 'Grid {/Symbol c}=%lf'\n", params.chi);
+    mPipe.write("set title 'Magnetic field grid, {/Symbol c}=%lf'\n", params.chi);
     mPipe.write("set xlabel '%s' norotate textcolor rgb '#757575'\n", params.xLabel.c_str());
     mPipe.write("set ylabel '%s' norotate textcolor rgb '#757575'\n", params.yLabel.c_str());
-    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
 
     if (mParams.isEqualAxis)
     {

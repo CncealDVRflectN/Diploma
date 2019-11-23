@@ -34,7 +34,8 @@ enum OptsIds
     FIELD_MODEL_PROBLEM_OPT,
     LABEL_X_OPT,
     LABEL_Y_OPT,
-    LABEL_POTENTIAL_OPT
+    LABEL_POTENTIAL_OPT,
+    LABEL_ERROR_OPT
 };
 
 
@@ -70,6 +71,7 @@ static const LongOpt LONG_OPTS[] = {
     {"label-x",                             LABEL_X_OPT},
     {"label-y",                             LABEL_Y_OPT},
     {"label-potential",                     LABEL_POTENTIAL_OPT},
+    {"label-error",                         LABEL_ERROR_OPT},
     {nullptr,					            0}
 };
 
@@ -82,6 +84,7 @@ ProgramOptsHandler::ProgramOptsHandler()
     mParams.xLabel = "x";
     mParams.yLabel = "y";
     mParams.potentialLabel = "potential";
+    mParams.errorLabel = "error";
     mParams.windowWidth = 1280;
     mParams.windowHeight = 720;
     mParams.wTarget = 0.0;
@@ -136,6 +139,7 @@ ProblemParams ProgramOptsHandler::problemParameters() const
     problemParams.xLabel = mParams.xLabel;
     problemParams.yLabel = mParams.yLabel;
     problemParams.potentialLabel = mParams.potentialLabel;
+    problemParams.errorLabel = mParams.errorLabel;
     problemParams.accuracy = mParams.accuracy;
     problemParams.fieldAccuracy = mParams.fieldAccuracy;
     problemParams.chi = mParams.chiInitial;
@@ -213,132 +217,136 @@ void ProgramOptsHandler::handleOpt(int optId, char* optPtr)
 {
     switch (optId)
     {
-    case WINDOW_WIDTH_OPT:
-        mParams.windowWidth = std::atoi(optPtr);
-        break;
+        case WINDOW_WIDTH_OPT:
+            mParams.windowWidth = std::atoi(optPtr);
+            break;
 
-    case WINDOW_HEIGHT_OPT:
-        mParams.windowHeight = std::atoi(optPtr);
-        break;
+        case WINDOW_HEIGHT_OPT:
+            mParams.windowHeight = std::atoi(optPtr);
+            break;
 
-    case W_PARAM_TARGET_OPT:
-        mParams.wTarget = std::atof(optPtr);
-        break;
+        case W_PARAM_TARGET_OPT:
+            mParams.wTarget = std::atof(optPtr);
+            break;
 
-    case CHI_INITIAL_OPT:
-        mParams.chiInitial = std::atof(optPtr);
-        break;
+        case CHI_INITIAL_OPT:
+            mParams.chiInitial = std::atof(optPtr);
+            break;
 
-    case CHI_TARGET_OPT:
-        mParams.chiTarget = std::atof(optPtr);
-        break;
+        case CHI_TARGET_OPT:
+            mParams.chiTarget = std::atof(optPtr);
+            break;
 
-    case RELAXATION_PARAM_INITIAL_OPT:
-        mParams.relaxationParamInitial = std::atof(optPtr);
-        break;
+        case RELAXATION_PARAM_INITIAL_OPT:
+            mParams.relaxationParamInitial = std::atof(optPtr);
+            break;
 
-    case RELAXATION_PARAM_MIN_OPT:
-        mParams.relaxationParamMin = std::atof(optPtr);
-        break;
+        case RELAXATION_PARAM_MIN_OPT:
+            mParams.relaxationParamMin = std::atof(optPtr);
+            break;
 
-    case ACCURACY_OPT:
-        mParams.accuracy = std::atof(optPtr);
-        break;
+        case ACCURACY_OPT:
+            mParams.accuracy = std::atof(optPtr);
+            break;
 
-    case SPLITS_NUM_OPT:
-        mParams.splitsNum = std::atoi(optPtr);
-        break;
+        case SPLITS_NUM_OPT:
+            mParams.splitsNum = std::atoi(optPtr);
+            break;
 
-    case ITERATIONS_MAX_NUM_OPT:
-        mParams.iterationsMaxNum = std::atoi(optPtr);
-        break;
+        case ITERATIONS_MAX_NUM_OPT:
+            mParams.iterationsMaxNum = std::atoi(optPtr);
+            break;
 
-    case W_RESULTS_NUM_OPT:
-        mParams.resultsNumW = std::atoi(optPtr);
-        break;
+        case W_RESULTS_NUM_OPT:
+            mParams.resultsNumW = std::atoi(optPtr);
+            break;
 
-    case CHI_RESULTS_NUM_OPT:
-        mParams.resultsNumChi = std::atoi(optPtr);
-        break;
+        case CHI_RESULTS_NUM_OPT:
+            mParams.resultsNumChi = std::atoi(optPtr);
+            break;
 
-    case FIELD_SURFACE_SPLITS_NUM_OPT:
-        mParams.fieldSurfaceSplitsNum = std::atoi(optPtr);
-        break;
+        case FIELD_SURFACE_SPLITS_NUM_OPT:
+            mParams.fieldSurfaceSplitsNum = std::atoi(optPtr);
+            break;
 
-    case FIELD_INTERNAL_SPLITS_NUM_OPT:
-        mParams.fieldInternalSplitsNum = std::atoi(optPtr);
-        break;
+        case FIELD_INTERNAL_SPLITS_NUM_OPT:
+            mParams.fieldInternalSplitsNum = std::atoi(optPtr);
+            break;
 
-    case FIELD_EXTERNAL_SPLITS_NUM_OPT:
-        mParams.fieldExternalSplitsNum = std::atoi(optPtr);
-        break;
+        case FIELD_EXTERNAL_SPLITS_NUM_OPT:
+            mParams.fieldExternalSplitsNum = std::atoi(optPtr);
+            break;
 
-    case FIELD_ACCURACY_OPT:
-        mParams.fieldAccuracy = std::atof(optPtr);
-        break;
+        case FIELD_ACCURACY_OPT:
+            mParams.fieldAccuracy = std::atof(optPtr);
+            break;
 
-    case FIELD_ITERATIONS_MAX_NUM_OPT:
-        mParams.fieldIterationsMaxNum = std::atoi(optPtr);
-        break;
+        case FIELD_ITERATIONS_MAX_NUM_OPT:
+            mParams.fieldIterationsMaxNum = std::atoi(optPtr);
+            break;
 
-    case FIELD_RELAXATION_PARAM_INITIAL_OPT:
-        mParams.fieldRelaxParamInitial = std::atof(optPtr);
-        break;
+        case FIELD_RELAXATION_PARAM_INITIAL_OPT:
+            mParams.fieldRelaxParamInitial = std::atof(optPtr);
+            break;
 
-    case FIELD_RELAXATION_PARAM_MIN_OPT:
-        mParams.fieldRelaxParamMin = std::atof(optPtr);
-        break;
+        case FIELD_RELAXATION_PARAM_MIN_OPT:
+            mParams.fieldRelaxParamMin = std::atof(optPtr);
+            break;
 
-    case FIELD_MODEL_RELAXATION_PARAM_INITIAL_OPT:
-        mParams.fieldModelRelaxParamInitial = std::atof(optPtr);
-        break;
+        case FIELD_MODEL_RELAXATION_PARAM_INITIAL_OPT:
+            mParams.fieldModelRelaxParamInitial = std::atof(optPtr);
+            break;
 
-    case FIELD_MODEL_RELAXATION_PARAM_MIN_OPT:
-        mParams.fieldModelRelaxParamMin = std::atof(optPtr);
-        break;
+        case FIELD_MODEL_RELAXATION_PARAM_MIN_OPT:
+            mParams.fieldModelRelaxParamMin = std::atof(optPtr);
+            break;
 
-    case FIELD_MODEL_CHI_OPT:
-        mParams.fieldModelChi = std::atof(optPtr);
-        break;
+        case FIELD_MODEL_CHI_OPT:
+            mParams.fieldModelChi = std::atof(optPtr);
+            break;
 
-    case FIELD_INFINITY_POS_MULTIPLIER_OPT:
-        mParams.fieldInfinityPosMultiplier = std::atof(optPtr);
-        break;
+        case FIELD_INFINITY_POS_MULTIPLIER_OPT:
+            mParams.fieldInfinityPosMultiplier = std::atof(optPtr);
+            break;
 
-    case LABEL_X_OPT:
-        mParams.xLabel = readStringValue(optPtr);
-        break;
+        case LABEL_X_OPT:
+            mParams.xLabel = readStringValue(optPtr);
+            break;
 
-    case LABEL_Y_OPT:
-        mParams.yLabel = readStringValue(optPtr);
-        break;
+        case LABEL_Y_OPT:
+            mParams.yLabel = readStringValue(optPtr);
+            break;
 
-    case LABEL_POTENTIAL_OPT:
-        mParams.potentialLabel = readStringValue(optPtr);
-        break;
+        case LABEL_POTENTIAL_OPT:
+            mParams.potentialLabel = readStringValue(optPtr);
+            break;
+
+        case LABEL_ERROR_OPT:
+            mParams.errorLabel = readStringValue(optPtr);
+            break;
         
-    case EQUAL_AXIS_OPT:
-        mParams.isEqualAxis = true;
-        break;
+        case EQUAL_AXIS_OPT:
+            mParams.isEqualAxis = true;
+            break;
 
-    case DIMENSIONLESS_OPT:
-        mParams.isDimensionless = true;
-        break;
+        case DIMENSIONLESS_OPT:
+            mParams.isDimensionless = true;
+            break;
 
-    case PEDANTIC_RIGHT_SWEEP_OPT:
-        mParams.isRightSweepPedantic = true;
-        break;
+        case PEDANTIC_RIGHT_SWEEP_OPT:
+            mParams.isRightSweepPedantic = true;
+            break;
 
-    case MAIN_PROBLEM_OPT:
-        mParams.isMainProblemEnabled = true;
-        break;
+        case MAIN_PROBLEM_OPT:
+            mParams.isMainProblemEnabled = true;
+            break;
 
-    case FIELD_MODEL_PROBLEM_OPT:
-        mParams.isFieldModelProblemEnabled = true;
-        break;
+        case FIELD_MODEL_PROBLEM_OPT:
+            mParams.isFieldModelProblemEnabled = true;
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 }
 

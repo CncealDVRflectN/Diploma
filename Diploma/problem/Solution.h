@@ -12,6 +12,7 @@ typedef struct problem_params_t
     STGridParams gridParams;
     std::string xLabel;
     std::string yLabel;
+    std::string errorLabel;
     std::string potentialLabel;
     double wTarget;
     double relaxationParamInitial;
@@ -60,6 +61,8 @@ public:
 
     FieldResultParams fieldResultParams() const;
 
+    FieldModelParams fieldModelParams() const;
+
 
     std::filesystem::path writeFluidData() const;
 
@@ -68,6 +71,10 @@ public:
     std::filesystem::path writeFieldData() const;
 
     void writeFieldData(const std::filesystem::path& fieldDataPath) const;
+
+    std::filesystem::path writeFieldErrorData() const;
+
+    void writeFieldErrorData(const std::filesystem::path& errorDataPath) const;
 
     std::filesystem::path writeInternalGridData() const;
 
@@ -104,7 +111,11 @@ private:
     SimpleTriangleGrid mLastValidFieldGrid;
     Array<Vector2<double>> mLastValidFluidSurface;
     Matrix<double> mLastValidFieldPotential;
+    Matrix<double> mLastFieldDiscrepancy;
     
+    double mLastFieldDiscrepancyMin;
+    double mLastFieldDiscrepancyMax;
+
     double mCurW;
     double mStepW;
     

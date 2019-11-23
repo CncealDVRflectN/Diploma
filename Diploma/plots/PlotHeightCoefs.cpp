@@ -28,11 +28,11 @@ void PlotHeightCoefs::plot(const std::vector<std::filesystem::path>& heightCoefs
     }
 
     mPipe.write("set term wxt size %u,%u enhanced font 'Verdana,10'\n", mParams.windowWidth, mParams.windowHeight);
+    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
     mPipe.write("load '%s'\n", plot_config_path("height-coefs.cfg").string().c_str());
     mPipe.write("set title 'Fluid height to width ratio'\n");
     mPipe.write("set xlabel 'W' norotate textcolor rgb '#757575'\n");
     mPipe.write("set ylabel 'k' norotate textcolor rgb '#757575'\n");
-    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
 
     size_t linesNum = chis.size();
 

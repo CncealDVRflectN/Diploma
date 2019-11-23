@@ -33,6 +33,7 @@ void PlotFieldIsolines::plot(const std::filesystem::path& fieldData, const std::
 
 
     mPipe.write("set term wxt size %u,%u enhanced font 'Verdana,10'\n", mParams.windowWidth, mParams.windowHeight);
+    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
 
     mPipe.write("set table '%s'\n", contoursData.string().c_str());
     mPipe.write("set dgrid3d %d,%d splines\n", gridSize.x, gridSize.y);
@@ -51,10 +52,10 @@ void PlotFieldIsolines::plot(const std::filesystem::path& fieldData, const std::
     mPipe.write("unset contour\n");
 
     mPipe.write("load '%s'\n", plot_config_path("field-isolines.cfg").string().c_str());
-    mPipe.write("set title 'Field isolines {/Symbol c}=%lf'\n", fieldParams.chi);
+    mPipe.write("set title 'Magnetic field isolines, {/Symbol c}=%lf'\n", fieldParams.chi);
     mPipe.write("set xlabel '%s' norotate textcolor rgb '#757575'\n", fieldParams.xLabel.c_str());
     mPipe.write("set ylabel '%s' norotate textcolor rgb '#757575'\n", fieldParams.yLabel.c_str());
-    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
+    mPipe.write("set zlabel '%s' norotate textcolor rgb '#757575'\n", fieldParams.potentialLabel.c_str());
     mPipe.write("set cntrparam levels discrete %s,%lf,%s\n", internalContours.c_str(), 
                                                              fieldParams.fluidTopPotential, 
                                                              externalContours.c_str());

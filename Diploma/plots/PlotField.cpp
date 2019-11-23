@@ -10,7 +10,6 @@ PlotField::PlotField(const PlotParams& params) : mParams(params), mPipe("gnuplot
 #pragma endregion
 
 
-
 #pragma region Member methods
 
 void PlotField::plot(const std::filesystem::path& fieldData, const std::filesystem::path& fluidData)
@@ -22,6 +21,7 @@ void PlotField::plot(const std::filesystem::path& fieldData, const std::filesyst
     std::filesystem::path fieldGridData = intermediate_file_path("field-grid-data.dat");
 
     mPipe.write("set term wxt size %u,%u enhanced font 'Verdana,10'\n", mParams.windowWidth, mParams.windowHeight);
+    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
 
     mPipe.write("set table '%s'\n", fieldGridData.string().c_str());
     mPipe.write("set dgrid3d %d,%d splines\n", gridSize.x, gridSize.y);
@@ -31,13 +31,13 @@ void PlotField::plot(const std::filesystem::path& fieldData, const std::filesyst
     mPipe.write("unset table\n");
     mPipe.write("unset dgrid3d\n");
 
-    mPipe.write("set pm3d map interpolate 4,4\n");
+    mPipe.write("set pm3d map interpolate 6,6\n");
 
     mPipe.write("load '%s'\n", plot_config_path("field.cfg").string().c_str());
-    mPipe.write("set title 'Magnetic field {/Symbol c}=%lf'\n", fieldParams.chi);
+    mPipe.write("set title 'Magnetic field, {/Symbol c}=%lf'\n", fieldParams.chi);
     mPipe.write("set xlabel '%s' norotate textcolor rgb '#757575'\n", fieldParams.xLabel.c_str());
     mPipe.write("set ylabel '%s' norotate textcolor rgb '#757575'\n", fieldParams.yLabel.c_str());
-    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
+    mPipe.write("set zlabel '%s' norotate textcolor rgb '#757575'\n", fieldParams.potentialLabel.c_str());
     mPipe.write("set cbrange [%lf:%lf]\n", fieldParams.potentialMin, fieldParams.potentialMax);
 
     if (mParams.isEqualAxis)

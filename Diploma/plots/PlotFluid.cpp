@@ -28,11 +28,11 @@ void PlotFluid::plot(const std::vector<std::filesystem::path>& fluidDatas)
     }
 
     mPipe.write("set term wxt size %u,%u enhanced font 'Verdana,10'\n", mParams.windowWidth, mParams.windowHeight);
+    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
     mPipe.write("load '%s'\n", plot_config_path("fluid.cfg").string().c_str());
-    mPipe.write("set title 'Fluid surface dynamics {/Symbol c}=%lf'\n", params[0].chi);
+    mPipe.write("set title 'Fluid surface dynamics, {/Symbol c}=%lf'\n", params[0].chi);
     mPipe.write("set xlabel '%s' norotate textcolor rgb '#757575'\n", params[0].xLabel.c_str());
     mPipe.write("set ylabel '%s' norotate textcolor rgb '#757575'\n", params[0].yLabel.c_str());
-    mPipe.write("set datafile commentschars '%c'\n", COMMENT_CHARACTER);
 
     if (mParams.isEqualAxis)
     {

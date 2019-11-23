@@ -5,6 +5,7 @@
 #include "PlotHeightCoefs.h"
 #include "PlotFieldIsolines.h"
 #include "PlotField.h"
+#include "PlotModelFieldError.h"
 
 
 void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution& solution)
@@ -20,12 +21,14 @@ void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution&
     }
 
     std::filesystem::path fieldPath = intermediate_file_path(generate_file_name("field-model", "dat", "-"));
+    std::filesystem::path errorPath = intermediate_file_path(generate_file_name("field-model", "dat", "-", "error"));
     std::filesystem::path gridIntPath = intermediate_file_path(generate_file_name("field-model", "dat", "-", "grid", "int"));
     std::filesystem::path gridExtPath = intermediate_file_path(generate_file_name("field-model", "dat", "-", "grid", "ext"));
 
     printf("Saving results to files...\n");
 
     solution.writeFieldData(fieldPath);
+    solution.writeFieldErrorData(errorPath);
     solution.writeInternalGridData(gridIntPath);
     solution.writeExternalGridData(gridExtPath);
 
@@ -37,16 +40,19 @@ void calculateFieldModelProblem(const ProgramOptsHandler& optsHandler, Solution&
     PlotSTGrid plotGrid(plotParams);
     PlotFieldIsolines plotFieldIsolines(plotParams);
     PlotField plotField(plotParams);
+    PlotModelFieldError plotError(plotParams);
 
     plotGrid.plot(gridIntPath, gridExtPath);
     plotFieldIsolines.plot(fieldPath, fluidPath);
     plotField.plot(fieldPath, fluidPath);
+    plotError.plot(errorPath, fluidPath);
 
     system("pause");
 
     plotGrid.close();
     plotFieldIsolines.close();
     plotField.close();
+    plotError.close();
 }
 
 
